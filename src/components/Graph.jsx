@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import ExportButton from "./ExportButton";
+import GraphNode from "./GraphNode";
 
 const Graph = ({ data }) => {
   const svgRef = useRef();
@@ -30,29 +31,22 @@ const Graph = ({ data }) => {
       svg.call(zoomRef.current);
     }
 
-    // Baumstruktur erstellen mit dynamischem Abstand
-    const buildTree = (nodes) => {
-      if (nodes.length === 0) return null;
-      const root = { id: nodes[0].id, children: [] };
-      const queue = [root];
-      let index = 1;
-
-      while (index < nodes.length) {
-        const parent = queue.shift();
-        for (let i = 0; i < 2 && index < nodes.length; i++) {
-          const child = { id: nodes[index].id, children: [] };
-          parent.children.push(child);
-          queue.push(child);
-          index++;
-        }
+    // D3-Hierarchie aus GraphNode-Objekten erstellen
+    const buildHierarchy = (nodes) => {
+      if (!nodes || nodes.length === 0) return null;
+      
+      const rootNode = nodes.find(node => node.parentId === null); // Wurzelknoten suchen
+      if (!rootNode) {
+        console.error("Kein gültiger Wurzelknoten gefunden!");
+        return null;
       }
-      return root;
+    
+      return d3.hierarchy(rootNode, (node) => node.children);
     };
 
-    const treeData = buildTree(data);
-    console.log("Tree Data:", treeData);
+    const root = buildHierarchy(data);
+    if (!root) return;
 
-    const root = d3.hierarchy(treeData);
     const depthFactor = Math.max(50, height / (root.height + 2)); // Abstand anpassen
     const treeLayout = d3.tree().nodeSize([depthFactor, depthFactor * 2]);
     treeLayout(root);
