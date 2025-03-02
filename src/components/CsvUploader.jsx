@@ -19,12 +19,6 @@ const CsvUploader = ({ onDataLoaded }) => {
       parsedData.forEach(row => {
         const parentId = row.parent_id && row.parent_id.trim() !== "" ? row.parent_id : null;
         const node = new GraphNode(row.id, row.name, parentId);
-
-        // Speichere alle CSV-Spalten als Attribute
-        Object.keys(row).forEach(key => {
-          node[key] = row[key];
-        });
-        
         nodesMap.set(row.id, node);
       });
 
