@@ -18,7 +18,13 @@ const CsvUploader = ({ onDataLoaded }) => {
       const nodesMap = new Map();
       parsedData.forEach(row => {
         const parentId = row.parent_id && row.parent_id.trim() !== "" ? row.parent_id : null;
-        const node = new GraphNode(row.id, row.name, parentId);
+        const node = new GraphNode(row.id, row.name, parentId, row.schema);
+
+        // Speichere alle CSV-Spalten als Attribute
+        Object.keys(row).forEach(key => {
+          node[key] = row[key];
+        });
+        
         nodesMap.set(row.id, node);
       });
 

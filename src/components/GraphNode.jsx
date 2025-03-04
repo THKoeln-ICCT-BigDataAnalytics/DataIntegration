@@ -1,9 +1,10 @@
 class GraphNode {
-    constructor(id, name, parentId = null) {
+    constructor(id, name, parentId = null, schema) {
       this.id = id;
       this.name = name;
       this.parentId = parentId;
-      this.children = [];
+      this.children = []
+      this.schema = schema;
     }
   
     addChild(childNode) {
