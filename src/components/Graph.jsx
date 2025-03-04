@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import ExportButton from "./ExportButton";
-import GraphNode from "./GraphNode";
+import getColorForSchema from "./SchemaColorMapping";
 
-const Graph = ({ data }) => {
+const Graph = ({ data, onNodeClick }) => {
   const svgRef = useRef();
   const gRef = useRef();
   const zoomRef = useRef(null);
@@ -23,7 +23,6 @@ const Graph = ({ data }) => {
     svg.selectAll("*").remove(); // Entfernt alte Zeichnungen
     const g = svg.append("g").attr("ref", gRef);
 
-    // Zoom und Verschieben aktivieren
     if (!zoomRef.current) {
       zoomRef.current = d3.zoom().scaleExtent([0.1, 2]).on("zoom", (event) => {
         g.attr("transform", event.transform);
@@ -31,27 +30,23 @@ const Graph = ({ data }) => {
       svg.call(zoomRef.current);
     }
 
-    // D3-Hierarchie aus GraphNode-Objekten erstellen
     const buildHierarchy = (nodes) => {
       if (!nodes || nodes.length === 0) return null;
-      
-      const rootNode = nodes.find(node => node.parentId === null); // Wurzelknoten suchen
+      const rootNode = nodes.find(node => node.parentId === null);
       if (!rootNode) {
         console.error("Kein gültiger Wurzelknoten gefunden!");
         return null;
       }
-    
       return d3.hierarchy(rootNode, (node) => node.children);
     };
 
     const root = buildHierarchy(data);
     if (!root) return;
 
-    const depthFactor = Math.max(50, height / (root.height + 2)); // Abstand anpassen
+    const depthFactor = Math.max(50, height / (root.height + 2));
     const treeLayout = d3.tree().nodeSize([depthFactor, depthFactor * 2]);
     treeLayout(root);
 
-    // Links zeichnen
     g.selectAll("line")
       .data(root.links())
       .enter()
@@ -62,7 +57,6 @@ const Graph = ({ data }) => {
       .attr("y2", d => d.target.y)
       .attr("stroke", "black");
 
-    // Knoten zeichnen
     g.selectAll("circle")
       .data(root.descendants())
       .enter()
@@ -70,9 +64,11 @@ const Graph = ({ data }) => {
       .attr("cx", d => d.x)
       .attr("cy", d => d.y)
       .attr("r", 5)
-      .attr("fill", "blue");
+      .attr("fill", d => getColorForSchema(d.data.schema)) // Farbzuteilung basierend auf Schema
+      .on("click", (event, d) => {
+        onNodeClick(d.data); // Übergibt den angeklickten Knoten an App.jsx
+      });
 
-    // Labels hinzufügen
     g.selectAll("text")
       .data(root.descendants())
       .enter()
@@ -82,7 +78,6 @@ const Graph = ({ data }) => {
       .text(d => d.data.id);
   }, [data]);
 
-  // Zoom per Slider steuern
   useEffect(() => {
     if (zoomRef.current) {
       const svg = d3.select(svgRef.current);
