@@ -1,5 +1,6 @@
 {
   "name": "graph-visualization",
+  "homepage": "https://thkoeln-icct-bigdataanalytics.github.io/DataIntegration/"
   "private": true,
   "version": "0.0.0",
   "type": "module",
