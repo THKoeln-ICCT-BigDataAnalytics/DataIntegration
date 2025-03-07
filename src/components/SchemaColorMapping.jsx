@@ -26,7 +26,7 @@ const getColorForSchema = (schema) => {
 
 // Falls die Farbe bereits verwendet wurde, wähle eine andere
 let attempts = 0;
-while (usedColors.has(color) && attempts < 50) {
+while (usedColors.has(color) && attempts < 500) {
   hash += 1; // Variiere den Hash-Wert
   color = colorScale(hash % 500); // Berechne die Farbe erneut
   attempts++;

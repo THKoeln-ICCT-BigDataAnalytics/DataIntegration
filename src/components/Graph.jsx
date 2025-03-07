@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import ExportButton from "./ExportButton";
 import getColorForSchema from "./SchemaColorMapping";
+import { enableNodeDragging } from "./DraggableNodes";
 
 const Graph = ({ data, onNodeClick }) => {
   const svgRef = useRef();
@@ -57,6 +58,7 @@ const Graph = ({ data, onNodeClick }) => {
       .attr("y2", d => d.target.y)
       .attr("stroke", "black");
 
+/*  //Momentan überflüssig
     g.selectAll("circle")
       .data(root.descendants())
       .enter()
@@ -68,6 +70,23 @@ const Graph = ({ data, onNodeClick }) => {
       .on("click", (event, d) => {
         onNodeClick(d.data); // Übergibt den angeklickten Knoten an App.jsx
       });
+*/
+      
+
+      //Drag-Funktion aufrufen
+    const nodes = g.selectAll("circle")
+    .data(root.descendants())
+    .enter()
+    .append("circle")
+    .attr("cx", d => d.x)
+    .attr("cy", d => d.y)
+    .attr("r", 5)
+    .attr("fill", d => getColorForSchema(d.data.schema))
+    .on("click", (event, d) => {
+      onNodeClick(d.data);
+    });
+      enableNodeDragging(g.selectAll("circle")); 
+      enableNodeDragging(nodes); // Drag-Funktion anwenden
 
     g.selectAll("text")
       .data(root.descendants())
