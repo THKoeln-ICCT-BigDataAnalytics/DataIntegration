@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import ExportButton from "./ExportButton";
 import getColorForSchema from "./SchemaColorMapping";
+import enableDrag from "./DragHandler";
 
 const Graph = ({ data, onNodeClick }) => {
   const svgRef = useRef();
@@ -47,7 +48,7 @@ const Graph = ({ data, onNodeClick }) => {
     const treeLayout = d3.tree().nodeSize([depthFactor, depthFactor * 2]);
     treeLayout(root);
 
-    g.selectAll("line")
+    const links = g.selectAll("line")
       .data(root.links())
       .enter()
       .append("line")
@@ -57,25 +58,27 @@ const Graph = ({ data, onNodeClick }) => {
       .attr("y2", d => d.target.y)
       .attr("stroke", "black");
 
-    g.selectAll("circle")
+    const nodes = g.selectAll("circle")
       .data(root.descendants())
       .enter()
       .append("circle")
       .attr("cx", d => d.x)
       .attr("cy", d => d.y)
       .attr("r", 5)
-      .attr("fill", d => getColorForSchema(d.data.schema)) // Farbzuteilung basierend auf Schema
+      .attr("fill", d => getColorForSchema(d.data.schema))
       .on("click", (event, d) => {
-        onNodeClick(d.data); // Übergibt den angeklickten Knoten an App.jsx
+        onNodeClick(d.data);
       });
 
-    g.selectAll("text")
+    const labels = g.selectAll("text")
       .data(root.descendants())
       .enter()
       .append("text")
       .attr("x", d => d.x + 10)
       .attr("y", d => d.y + 5)
       .text(d => d.data.id);
+
+    nodes.call(enableDrag(nodes, links, labels));
   }, [data]);
 
   useEffect(() => {
