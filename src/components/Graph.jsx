@@ -76,7 +76,8 @@ const Graph = ({ data, onNodeClick }) => {
       .append("text")
       .attr("x", d => d.x + 10)
       .attr("y", d => d.y + 5)
-      .text(d => d.data.id);
+      .text(d => d.data.name)
+      .style("font-size", "9px"); // Setzt die Schriftgröße auf 12px
 
     nodes.call(enableDrag(nodes, links, labels));
   }, [data]);
