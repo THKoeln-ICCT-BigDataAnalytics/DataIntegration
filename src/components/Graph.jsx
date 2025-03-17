@@ -44,42 +44,64 @@ const Graph = ({ data, onNodeClick }) => {
     const root = buildHierarchy(data);
     if (!root) return;
 
-    const depthFactor = Math.max(50, height / (root.height + 2));
-    const treeLayout = d3.tree().nodeSize([depthFactor, depthFactor * 2]);
-    treeLayout(root);
+    // Alle Knoten und Verbindungen für das Force-Graph
+    const nodes = root.descendants();
+    const links = root.links();
 
-    const links = g.selectAll("line")
-      .data(root.links())
+    // Erstelle eine Simulation für das Force-Graph
+    const simulation = d3.forceSimulation(nodes)
+      .force("link", d3.forceLink(links).id(d => d.id).distance(200).strength(1)) // Größerer Abstand für Links
+      .force("charge", d3.forceManyBody().strength(-1000)) // Stärkere Abstoßungskraft für Knoten
+      .force("center", d3.forceCenter(width / 2, height / 2))
+      .force("collide", d3.forceCollide().radius(150)) // Kollisionsradius für Knoten
+      .force("y", d3.forceY().strength(0.1)); // Vertikale Trennung
+
+    const linkElements = g.selectAll("line")
+      .data(links)
       .enter()
       .append("line")
-      .attr("x1", d => d.source.x)
-      .attr("y1", d => d.source.y)
-      .attr("x2", d => d.target.x)
-      .attr("y2", d => d.target.y)
-      .attr("stroke", "black");
+      .attr("stroke", "black")
+      .attr("stroke-width", 1)
+      .attr("opacity", 0.6);
 
-    const nodes = g.selectAll("circle")
-      .data(root.descendants())
+    const nodeElements = g.selectAll("circle")
+      .data(nodes)
       .enter()
       .append("circle")
-      .attr("cx", d => d.x)
-      .attr("cy", d => d.y)
-      .attr("r", 5)
+      .attr("r", d => d === root ? 15 : 6) // Wenn der Knoten der Wurzelknoten ist, setze den Radius auf 15, andernfalls 6
       .attr("fill", d => getColorForSchema(d.data.schema))
       .on("click", (event, d) => {
         onNodeClick(d.data);
       });
 
     const labels = g.selectAll("text")
-      .data(root.descendants())
+      .data(nodes)
       .enter()
       .append("text")
       .attr("x", d => d.x + 10)
       .attr("y", d => d.y + 5)
       .text(d => d.data.name)
-      .style("font-size", "9px"); // Setzt die Schriftgröße auf 12px
+      .style("font-size", "9px");
 
-    nodes.call(enableDrag(nodes, links, labels));
+    // Aktualisiere die Positionen der Knoten und Kanten während der Simulation
+    simulation.on("tick", () => {
+      linkElements
+        .attr("x1", d => d.source.x)
+        .attr("y1", d => d.source.y)
+        .attr("x2", d => d.target.x)
+        .attr("y2", d => d.target.y);
+
+      nodeElements
+        .attr("cx", d => d.x)
+        .attr("cy", d => d.y);
+
+      labels
+        .attr("x", d => d.x + 10)
+        .attr("y", d => d.y + 5);
+    });
+
+    // Dragging hinzufügen
+    nodeElements.call(enableDrag(nodeElements, linkElements, labels));
   }, [data]);
 
   useEffect(() => {
