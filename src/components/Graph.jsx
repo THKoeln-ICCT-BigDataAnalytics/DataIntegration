@@ -64,35 +64,18 @@ const Graph = ({ data, onNodeClick }) => {
       .attr("stroke-width", 1)
       .attr("opacity", 0.6);
 
-    const nodeElements = g.selectAll("circle, rect")
+    const nodeElements = g.selectAll("circle")
       .data(nodes)
       .enter()
-      .append(function(d) {
-        // Überprüfen, ob der Knoten ein Parent von Blättern ist
-        const hasLeafChildren = d.children && d.children.some(child => child.children === undefined);
-        
-        // Erstelle ein Rechteck nur, wenn der Knoten ein Parent von Blättern ist
-        if (hasLeafChildren) {
-          return document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        } else {
-          return document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        }
+      .append("circle")
+      .attr("r", d => {
+        if (d === root) return 15; // Wurzelknoten bleibt bei 15
+        const isLeafParent = d.children && d.children.some(child => !child.children); // Eltern der Blätter
+        return isLeafParent ? 9 : 6; // Eltern der Blätter haben einen Radius von 9, Blätter bleiben bei 6
       })
-      .attr("r", d => d === root ? 15 : 6) // Wenn der Knoten der Wurzelknoten ist, setze den Radius auf 15, andernfalls 6
-      .attr("width", d => (d.children && d.children.some(child => child.children === undefined)) ? 20 : null) // Rechteck-Breite nur für Eltern von Blättern
-      .attr("height", d => (d.children && d.children.some(child => child.children === undefined)) ? 20 : null) // Rechteck-Höhe nur für Eltern von Blättern
-      .attr("fill", d => getColorForSchema(d.data.schema))
-      .attr("x", d => {
-        if (d.children && d.children.some(child => child.children === undefined)) {
-          return d.x - 10; // Rechteck x-Position anpassen (zentriert)
-        }
-        return null;
-      })
-      .attr("y", d => {
-        if (d.children && d.children.some(child => child.children === undefined)) {
-          return d.y - 10; // Rechteck y-Position anpassen (zentriert)
-        }
-        return null;
+      .attr("fill", d => {
+        const isLeafParent = d.children && d.children.some(child => !child.children); // Eltern der Blätter
+        return isLeafParent ? "#FF0000" : getColorForSchema(d.data.schema); // Helles Rot für Elternknoten der Blätter
       })
       .on("click", (event, d) => {
         onNodeClick(d.data);
@@ -115,15 +98,9 @@ const Graph = ({ data, onNodeClick }) => {
         .attr("x2", d => d.target.x)
         .attr("y2", d => d.target.y);
 
-      // Korrektur der Position für Kreise
-      nodeElements.filter("circle")
+      nodeElements
         .attr("cx", d => d.x)
         .attr("cy", d => d.y);
-
-      // Korrektur der Position für Rechtecke
-      nodeElements.filter("rect")
-        .attr("x", d => d.x - 10) // Rechteck x-Position zentrieren
-        .attr("y", d => d.y - 10); // Rechteck y-Position zentrieren
 
       labels
         .attr("x", d => d.x + 10)
