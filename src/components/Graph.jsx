@@ -14,6 +14,9 @@ const Graph = ({ data, onNodeClick }) => {
     console.log("Empfangene Daten:", data);
     if (!data || data.length === 0) return;
 
+    // Debugging: Überprüfen der Struktur der Daten
+    console.log("Gesamte GraphNodes:", JSON.stringify(data, null, 2));
+
     const width = window.innerWidth * 0.9;
     const height = window.innerHeight * 0.8;
 
@@ -31,17 +34,7 @@ const Graph = ({ data, onNodeClick }) => {
       svg.call(zoomRef.current);
     }
 
-    const buildHierarchy = (nodes) => {
-      if (!nodes || nodes.length === 0) return null;
-      const rootNode = nodes.find(node => node.parentId === null);
-      if (!rootNode) {
-        console.error("Kein gültiger Wurzelknoten gefunden!");
-        return null;
-      }
-      return d3.hierarchy(rootNode, (node) => node.children);
-    };
-
-    const root = buildHierarchy(data);
+    const root = d3.hierarchy({ children: data }, (node) => node.children);
     if (!root) return;
 
     const depthFactor = Math.max(50, height / (root.height + 2));
