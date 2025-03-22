@@ -7,15 +7,12 @@ import enableDrag from "./DragHandler";
 const Graph = ({ data, onNodeClick }) => {
   const svgRef = useRef();
   const gRef = useRef();
-  const zoomRef = useRef(null);
+  const zoomRef = useRef(d3.zoom().scaleExtent([0.1, 2]));
   const [zoomLevel, setZoomLevel] = useState(1);
 
   useEffect(() => {
     console.log("Empfangene Daten:", data);
     if (!data || data.length === 0) return;
-
-    // Debugging: Überprüfen der Struktur der Daten
-    console.log("Gesamte GraphNodes:", JSON.stringify(data, null, 2));
 
     const width = window.innerWidth * 0.9;
     const height = window.innerHeight * 0.8;
@@ -23,62 +20,103 @@ const Graph = ({ data, onNodeClick }) => {
     const svg = d3.select(svgRef.current)
       .attr("width", width)
       .attr("height", height);
-
-    svg.selectAll("*").remove(); // Entfernt alte Zeichnungen
+    
+    svg.selectAll("*").remove();
     const g = svg.append("g").attr("ref", gRef);
 
-    if (!zoomRef.current) {
-      zoomRef.current = d3.zoom().scaleExtent([0.1, 2]).on("zoom", (event) => {
-        g.attr("transform", event.transform);
-      });
-      svg.call(zoomRef.current);
-    }
+    svg.call(zoomRef.current.on("zoom", (event) => {
+      g.attr("transform", event.transform);
+    }));
 
-    const root = d3.hierarchy({ children: data }, (node) => node.children);
+    // Erstelle eine tiefe Kopie der Daten vor der Filterung
+    const copiedData = JSON.parse(JSON.stringify(data));
+
+    // Rekursive Filterung der Nodes
+    const filterNodesRecursively = (node) => {
+      if (!node || String(node.predict_linkability).toLowerCase() === "false") {
+        return null;
+      }
+      const filteredChildren = node.children
+        ? node.children.map(filterNodesRecursively).filter(child => child !== null)
+        : [];
+      return { ...node, children: filteredChildren };
+    };
+
+    const filteredData = copiedData
+      .map(filterNodesRecursively)
+      .filter(node => node !== null);
+
+    console.log("Nach Filterung unsichtbarer Nodes:", filteredData);
+
+    const buildHierarchy = (nodes) => {
+      if (!nodes || nodes.length === 0) return null;
+      const rootNode = nodes.find(node => node.parentId === null);
+      if (!rootNode) {
+        console.error("Kein gültiger Wurzelknoten gefunden!");
+        return null;
+      }
+      return d3.hierarchy(rootNode, (node) => node.children);
+    };
+
+    const root = buildHierarchy(filteredData);
     if (!root) return;
 
-    const depthFactor = Math.max(50, height / (root.height + 2));
-    const treeLayout = d3.tree().nodeSize([depthFactor, depthFactor * 2]);
-    treeLayout(root);
+    const nodes = root.descendants();
+    const links = root.links();
 
-    const links = g.selectAll("line")
-      .data(root.links())
+    const simulation = d3.forceSimulation(nodes)
+      .force("link", d3.forceLink(links).id(d => d.id).distance(200).strength(1))
+      .force("charge", d3.forceManyBody().strength(-1000))
+      .force("center", d3.forceCenter(width / 2, height / 2))
+      .force("collide", d3.forceCollide().radius(150))
+      .force("y", d3.forceY().strength(0.1));
+
+    const linkElements = g.selectAll("line")
+      .data(links)
       .enter()
       .append("line")
-      .attr("x1", d => d.source.x)
-      .attr("y1", d => d.source.y)
-      .attr("x2", d => d.target.x)
-      .attr("y2", d => d.target.y)
-      .attr("stroke", "black");
+      .attr("stroke", "black")
+      .attr("stroke-width", 1)
+      .attr("opacity", 0.6);
 
-    const nodes = g.selectAll("circle")
-      .data(root.descendants())
+    const nodeElements = g.selectAll("circle")
+      .data(nodes)
       .enter()
       .append("circle")
-      .attr("cx", d => d.x)
-      .attr("cy", d => d.y)
-      .attr("r", 5)
+      .attr("r", d => d.children ? 9 : 6)
       .attr("fill", d => getColorForSchema(d.data.schema))
-      .on("click", (event, d) => {
-        onNodeClick(d.data);
-      });
+      .on("click", (event, d) => onNodeClick(d.data));
 
     const labels = g.selectAll("text")
-      .data(root.descendants())
+      .data(nodes)
       .enter()
       .append("text")
       .attr("x", d => d.x + 10)
       .attr("y", d => d.y + 5)
-      .text(d => d.data.id);
+      .text(d => d.data.name)
+      .style("font-size", "9px");
 
-    nodes.call(enableDrag(nodes, links, labels));
+    simulation.on("tick", () => {
+      linkElements
+        .attr("x1", d => d.source.x)
+        .attr("y1", d => d.source.y)
+        .attr("x2", d => d.target.x)
+        .attr("y2", d => d.target.y);
+
+      nodeElements
+        .attr("cx", d => d.x)
+        .attr("cy", d => d.y);
+
+      labels
+        .attr("x", d => d.x + 10)
+        .attr("y", d => d.y + 5);
+    });
+
+    nodeElements.call(enableDrag(nodeElements, linkElements, labels));
   }, [data]);
 
   useEffect(() => {
-    if (zoomRef.current) {
-      const svg = d3.select(svgRef.current);
-      svg.transition().duration(300).call(zoomRef.current.scaleTo, zoomLevel);
-    }
+    d3.select(svgRef.current).transition().duration(300).call(zoomRef.current.scaleTo, zoomLevel);
   }, [zoomLevel]);
 
   return (
@@ -89,12 +127,7 @@ const Graph = ({ data, onNodeClick }) => {
         max="2"
         step="0.1"
         value={zoomLevel}
-        onChange={(e) => {
-          setZoomLevel(Number(e.target.value));
-          if (zoomRef.current) {
-            d3.select(svgRef.current).call(zoomRef.current.scaleTo, Number(e.target.value));
-          }
-        }}
+        onChange={(e) => setZoomLevel(Number(e.target.value))}
       />
       <ExportButton svgRef={svgRef} />
       <svg ref={svgRef}></svg>

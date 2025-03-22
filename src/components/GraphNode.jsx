@@ -1,10 +1,24 @@
-class GraphNode {
+class GraphNode { 
   constructor(id, name, parentId = null, schema) {
     this.id = id;
     this.name = name;
     this.parentId = parentId;
     this.children = [];
     this.schema = schema;
+    
+    // Standardwerte für Attribute setzen
+    this.OC_ORACLE = 0;
+    this.OC_MYSQL = 0;
+    this.OC_SAP = 0;
+    this.FORMULA = 0;
+    this.OC_ORACLE_agree = 0;
+    this.OC_MYSQL_agree = 0;
+    this.OC_SAP_agree = 0;
+    this.FORMULA_agree = 0;
+    this.overall_agreement = 0;
+    this.predict_linkability = 0;
+    this.confusion = 0;
+    this.v = 0;
   }
 
   addChild(childNode) {
