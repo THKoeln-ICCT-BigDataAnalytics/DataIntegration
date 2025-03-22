@@ -7,7 +7,7 @@ import enableDrag from "./DragHandler";
 const Graph = ({ data, onNodeClick }) => {
   const svgRef = useRef();
   const gRef = useRef();
-  const zoomRef = useRef(null);
+  const zoomRef = useRef(d3.zoom().scaleExtent([0.1, 2]));
   const [zoomLevel, setZoomLevel] = useState(1);
 
   useEffect(() => {
@@ -20,16 +20,33 @@ const Graph = ({ data, onNodeClick }) => {
     const svg = d3.select(svgRef.current)
       .attr("width", width)
       .attr("height", height);
-
-    svg.selectAll("*").remove(); // Entfernt alte Zeichnungen
+    
+    svg.selectAll("*").remove();
     const g = svg.append("g").attr("ref", gRef);
 
-    if (!zoomRef.current) {
-      zoomRef.current = d3.zoom().scaleExtent([0.1, 2]).on("zoom", (event) => {
-        g.attr("transform", event.transform);
-      });
-      svg.call(zoomRef.current);
-    }
+    svg.call(zoomRef.current.on("zoom", (event) => {
+      g.attr("transform", event.transform);
+    }));
+
+    // Erstelle eine tiefe Kopie der Daten vor der Filterung
+    const copiedData = JSON.parse(JSON.stringify(data));
+
+    // Rekursive Filterung der Nodes
+    const filterNodesRecursively = (node) => {
+      if (!node || String(node.predict_linkability).toLowerCase() === "false") {
+        return null;
+      }
+      const filteredChildren = node.children
+        ? node.children.map(filterNodesRecursively).filter(child => child !== null)
+        : [];
+      return { ...node, children: filteredChildren };
+    };
+
+    const filteredData = copiedData
+      .map(filterNodesRecursively)
+      .filter(node => node !== null);
+
+    console.log("Nach Filterung unsichtbarer Nodes:", filteredData);
 
     const buildHierarchy = (nodes) => {
       if (!nodes || nodes.length === 0) return null;
@@ -41,20 +58,18 @@ const Graph = ({ data, onNodeClick }) => {
       return d3.hierarchy(rootNode, (node) => node.children);
     };
 
-    const root = buildHierarchy(data);
+    const root = buildHierarchy(filteredData);
     if (!root) return;
 
-    // Alle Knoten und Verbindungen für das Force-Graph
     const nodes = root.descendants();
     const links = root.links();
 
-    // Erstelle eine Simulation für das Force-Graph
     const simulation = d3.forceSimulation(nodes)
-      .force("link", d3.forceLink(links).id(d => d.id).distance(200).strength(1)) // Größerer Abstand für Links
-      .force("charge", d3.forceManyBody().strength(-1000)) // Stärkere Abstoßungskraft für Knoten
+      .force("link", d3.forceLink(links).id(d => d.id).distance(200).strength(1))
+      .force("charge", d3.forceManyBody().strength(-1000))
       .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("collide", d3.forceCollide().radius(150)) // Kollisionsradius für Knoten
-      .force("y", d3.forceY().strength(0.1)); // Vertikale Trennung
+      .force("collide", d3.forceCollide().radius(150))
+      .force("y", d3.forceY().strength(0.1));
 
     const linkElements = g.selectAll("line")
       .data(links)
@@ -68,18 +83,9 @@ const Graph = ({ data, onNodeClick }) => {
       .data(nodes)
       .enter()
       .append("circle")
-      .attr("r", d => {
-        if (d === root) return 15; // Wurzelknoten bleibt bei 15
-        const isLeafParent = d.children && d.children.some(child => !child.children); // Eltern der Blätter
-        return isLeafParent ? 9 : 6; // Eltern der Blätter haben einen Radius von 9, Blätter bleiben bei 6
-      })
-      .attr("fill", d => {
-        const isLeafParent = d.children && d.children.some(child => !child.children); // Eltern der Blätter
-        return isLeafParent ? "#FF0000" : getColorForSchema(d.data.schema); // Helles Rot für Elternknoten der Blätter
-      })
-      .on("click", (event, d) => {
-        onNodeClick(d.data);
-      });
+      .attr("r", d => d.children ? 9 : 6)
+      .attr("fill", d => getColorForSchema(d.data.schema))
+      .on("click", (event, d) => onNodeClick(d.data));
 
     const labels = g.selectAll("text")
       .data(nodes)
@@ -90,7 +96,6 @@ const Graph = ({ data, onNodeClick }) => {
       .text(d => d.data.name)
       .style("font-size", "9px");
 
-    // Aktualisiere die Positionen der Knoten und Kanten während der Simulation
     simulation.on("tick", () => {
       linkElements
         .attr("x1", d => d.source.x)
@@ -107,15 +112,11 @@ const Graph = ({ data, onNodeClick }) => {
         .attr("y", d => d.y + 5);
     });
 
-    // Dragging hinzufügen
     nodeElements.call(enableDrag(nodeElements, linkElements, labels));
   }, [data]);
 
   useEffect(() => {
-    if (zoomRef.current) {
-      const svg = d3.select(svgRef.current);
-      svg.transition().duration(300).call(zoomRef.current.scaleTo, zoomLevel);
-    }
+    d3.select(svgRef.current).transition().duration(300).call(zoomRef.current.scaleTo, zoomLevel);
   }, [zoomLevel]);
 
   return (
@@ -126,12 +127,7 @@ const Graph = ({ data, onNodeClick }) => {
         max="2"
         step="0.1"
         value={zoomLevel}
-        onChange={(e) => {
-          setZoomLevel(Number(e.target.value));
-          if (zoomRef.current) {
-            d3.select(svgRef.current).call(zoomRef.current.scaleTo, Number(e.target.value));
-          }
-        }}
+        onChange={(e) => setZoomLevel(Number(e.target.value))}
       />
       <ExportButton svgRef={svgRef} />
       <svg ref={svgRef}></svg>
