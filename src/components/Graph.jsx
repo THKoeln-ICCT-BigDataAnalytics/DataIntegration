@@ -22,16 +22,15 @@ const Graph = ({ data, onNodeClick }) => {
       .attr("height", height);
     
     svg.selectAll("*").remove();
-    const g = svg.append("g").attr("ref", gRef);
+    const g = svg.append("g");
+    gRef.current = g;
 
     svg.call(zoomRef.current.on("zoom", (event) => {
       g.attr("transform", event.transform);
     }));
 
-    // Erstelle eine tiefe Kopie der Daten vor der Filterung
     const copiedData = JSON.parse(JSON.stringify(data));
 
-    // Rekursive Filterung der Nodes
     const filterNodesRecursively = (node) => {
       if (!node || String(node.predict_linkability).toLowerCase() === "false") {
         return null;
@@ -116,7 +115,10 @@ const Graph = ({ data, onNodeClick }) => {
   }, [data]);
 
   useEffect(() => {
-    d3.select(svgRef.current).transition().duration(300).call(zoomRef.current.scaleTo, zoomLevel);
+    d3.select(gRef.current)
+      .transition()
+      .duration(300)
+      .attr("transform", `scale(${zoomLevel})`);
   }, [zoomLevel]);
 
   return (
