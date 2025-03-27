@@ -123,6 +123,11 @@ const Graph = ({ data, onNodeClick }) => {
 
   return (
     <div>
+      <h2>Graph Visualisierung</h2>
+      <p style={{ fontSize: "14px", color: "gray" }}>
+        Anleitung: 1. CSV-Datei hochladen → 2. Validierungsdatei hochladen (unten auf der Seite) → 3. Validitäts-Regler verwenden<br></br>
+        Optionale Features: 1. Zoom: Zoom ist über den Zoom-Regler oder das Mausrad → 2.verwendbar Knoten anklicken und Werte unten über den Button anzeigen lassen → 3.Export mit ExportButton → 4.Drag and Drop: Nodes lassen sich verschieben
+      </p>
       <input
         type="range"
         min="0.1"
