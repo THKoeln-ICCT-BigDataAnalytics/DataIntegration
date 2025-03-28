@@ -3,6 +3,7 @@ import * as d3 from "d3";
 import ExportButton from "./ExportButton";
 import getColorForSchema from "./SchemaColorMapping";
 import enableDrag from "./DragHandler";
+import databaseIcon from "../assets/database.svg";
 
 const Graph = ({ data, onNodeClick }) => {
   const svgRef = useRef();
@@ -78,19 +79,31 @@ const Graph = ({ data, onNodeClick }) => {
       .attr("stroke-width", 1)
       .attr("opacity", 0.6);
 
-    const nodeElements = g.selectAll("circle")
+    const nodeGroups = g.selectAll(".node")
       .data(nodes)
       .enter()
-      .append("circle")
-      .attr("r", d => d.children ? 9 : 6)
-      .attr("fill", d => getColorForSchema(d.data.schema))
+      .append("g")
+      .attr("class", "node")
       .on("click", (event, d) => onNodeClick(d.data));
+
+    nodeGroups.filter(d => d.data.type === "schema") // Nur Schemas als SVG
+      .append("image")
+      .attr("xlink:href", databaseIcon)
+      .attr("width", 20)
+      .attr("height", 20)
+      .attr("x", -10) // Zentrierung relativ zur Gruppe
+      .attr("y", -10);
+
+    nodeGroups.filter(d => d.data.type !== "schema") // Alle anderen als Kreise
+      .append("circle")
+      .attr("r", 6)
+      .attr("fill", d => getColorForSchema(d.data.schema));
 
     const labels = g.selectAll("text")
       .data(nodes)
       .enter()
       .append("text")
-      .attr("x", d => d.x + 10)
+      .attr("x", d => d.x + 15)
       .attr("y", d => d.y + 5)
       .text(d => d.data.name)
       .style("font-size", "9px");
@@ -102,16 +115,14 @@ const Graph = ({ data, onNodeClick }) => {
         .attr("x2", d => d.target.x)
         .attr("y2", d => d.target.y);
 
-      nodeElements
-        .attr("cx", d => d.x)
-        .attr("cy", d => d.y);
+      nodeGroups.attr("transform", d => `translate(${d.x},${d.y})`);
 
       labels
-        .attr("x", d => d.x + 10)
+        .attr("x", d => d.x + 15)
         .attr("y", d => d.y + 5);
     });
 
-    nodeElements.call(enableDrag(nodeElements, linkElements, labels));
+    nodeGroups.call(enableDrag(nodeGroups, linkElements, labels));
   }, [data]);
 
   useEffect(() => {
