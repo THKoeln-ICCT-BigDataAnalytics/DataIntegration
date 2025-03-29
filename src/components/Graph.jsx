@@ -33,14 +33,23 @@ const Graph = ({ data, onNodeClick }) => {
     const copiedData = JSON.parse(JSON.stringify(data));
 
     const filterNodesRecursively = (node) => {
-      if (!node || String(node.predict_linkability).toLowerCase() === "false") {
+        if (!node) return null;
+      
+        // Filtere rekursiv die Kinder
+        const filteredChildren = node.children
+          ? node.children.map(filterNodesRecursively).filter(child => child !== null)
+          : [];
+      
+        // Der Parent-Node soll nur erhalten bleiben, wenn entweder:
+        // - `predict_linkability` nicht "false" ist
+        // - oder er mindestens ein Kind hat, das erhalten bleibt
+        if (String(node.predict_linkability).toLowerCase() !== "false" || filteredChildren.length > 0) {
+          return { ...node, children: filteredChildren };
+        }
+      
+        // Falls weder der Parent gültig ist noch Kinder übrig bleiben -> null zurückgeben
         return null;
-      }
-      const filteredChildren = node.children
-        ? node.children.map(filterNodesRecursively).filter(child => child !== null)
-        : [];
-      return { ...node, children: filteredChildren };
-    };
+      };
 
     const filteredData = copiedData
       .map(filterNodesRecursively)
