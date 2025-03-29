@@ -65,19 +65,19 @@ const Graph = ({ data, onNodeClick }) => {
     const links = root.links();
 
     const simulation = d3.forceSimulation(nodes)
-      .force("link", d3.forceLink(links).id(d => d.id).distance(200).strength(1))
-      .force("charge", d3.forceManyBody().strength(-1000))
+      .force("link", d3.forceLink(links).id(d => d.id).distance(180).strength(1))
+      .force("charge", d3.forceManyBody().strength(-800))
       .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("collide", d3.forceCollide().radius(150))
+      .force("collide", d3.forceCollide().radius(130))
       .force("y", d3.forceY().strength(0.1));
 
     const linkElements = g.selectAll("line")
       .data(links)
       .enter()
       .append("line")
-      .attr("stroke", "black")
-      .attr("stroke-width", 1)
-      .attr("opacity", 0.6);
+      .attr("stroke", "#7f8c8d")
+      .attr("stroke-width", 2)
+      .attr("opacity", 0.8);
 
     const nodeGroups = g.selectAll(".node")
       .data(nodes)
@@ -86,27 +86,30 @@ const Graph = ({ data, onNodeClick }) => {
       .attr("class", "node")
       .on("click", (event, d) => onNodeClick(d.data));
 
-    nodeGroups.filter(d => d.data.type === "schema") // Nur Schemas als SVG
+    nodeGroups.filter(d => d.data.type === "schema") 
       .append("image")
       .attr("xlink:href", databaseIcon)
-      .attr("width", 20)
-      .attr("height", 20)
-      .attr("x", -10) // Zentrierung relativ zur Gruppe
-      .attr("y", -10);
+      .attr("width", 30)
+      .attr("height", 30)
+      .attr("x", -15)
+      .attr("y", -15);
 
-    nodeGroups.filter(d => d.data.type !== "schema") // Alle anderen als Kreise
+    nodeGroups.filter(d => d.data.type !== "schema") 
       .append("circle")
-      .attr("r", 6)
+      .attr("r", 8)
       .attr("fill", d => getColorForSchema(d.data.schema));
 
     const labels = g.selectAll("text")
       .data(nodes)
       .enter()
       .append("text")
-      .attr("x", d => d.x + 15)
+      .attr("x", d => d.x + 20)
       .attr("y", d => d.y + 5)
       .text(d => d.data.name)
-      .style("font-size", "9px");
+      .style("font-size", "12px")
+      .style("fill", "#2c3e50")
+      .style("font-family", "Roboto Mono, monospace")
+      .style("font-weight", "bold");
 
     simulation.on("tick", () => {
       linkElements
@@ -118,7 +121,7 @@ const Graph = ({ data, onNodeClick }) => {
       nodeGroups.attr("transform", d => `translate(${d.x},${d.y})`);
 
       labels
-        .attr("x", d => d.x + 15)
+        .attr("x", d => d.x + 20)
         .attr("y", d => d.y + 5);
     });
 
@@ -134,10 +137,10 @@ const Graph = ({ data, onNodeClick }) => {
 
   return (
     <div>
-      <h2>Graph Visualisierung</h2>
-      <p style={{ fontSize: "14px", color: "gray" }}>
-        Anleitung: 1. CSV-Datei hochladen → 2. Validierungsdatei hochladen (unten auf der Seite) → 3. Validitäts-Regler verwenden<br></br>
-        Optionale Features: 1. Zoom: Zoom ist über den Zoom-Regler oder das Mausrad → 2.verwendbar Knoten anklicken und Werte unten über den Button anzeigen lassen → 3.Export mit ExportButton → 4.Drag and Drop: Nodes lassen sich verschieben
+      <h2 style={{ color: "#2c3e50" }}>Datenbank-Struktur Visualisierung</h2>
+      <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace" }}>
+        📌 Anleitung: CSV-Datei hochladen → Validierungsdatei hochladen → Verlinkungen erkunden<br />
+        ⚙️ Features: Zoom, Drag & Drop, Export, interaktive Knoten.
       </p>
       <input
         type="range"
