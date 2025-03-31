@@ -15,6 +15,7 @@
   "dependencies": {
     "d3": "^7.9.0",
     "gh-pages": "^6.3.0",
+    "papaparse": "^5.5.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

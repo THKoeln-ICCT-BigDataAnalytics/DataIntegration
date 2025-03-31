@@ -4,6 +4,7 @@ import ExportButton from "./ExportButton";
 import getColorForSchema from "./SchemaColorMapping";
 import enableDrag from "./DragHandler";
 import databaseIcon from "../assets/database.svg";
+import tableIcon from "../assets/table.svg";
 
 const Graph = ({ data, onNodeClick }) => {
   const svgRef = useRef();
@@ -32,31 +33,34 @@ const Graph = ({ data, onNodeClick }) => {
 
     const copiedData = JSON.parse(JSON.stringify(data));
 
+    // Filtere rekursiv die Kinder
     const filterNodesRecursively = (node) => {
-        if (!node) return null;
-      
-        // Filtere rekursiv die Kinder
-        const filteredChildren = node.children
-          ? node.children.map(filterNodesRecursively).filter(child => child !== null)
-          : [];
-      
-        // Der Parent-Node soll nur erhalten bleiben, wenn entweder:
-        // - `predict_linkability` nicht "false" ist
-        // - oder er mindestens ein Kind hat, das erhalten bleibt
-        if (String(node.predict_linkability).toLowerCase() !== "false" || filteredChildren.length > 0) {
-          return { ...node, children: filteredChildren };
-        }
-      
-        // Falls weder der Parent gültig ist noch Kinder übrig bleiben -> null zurückgeben
-        return null;
-      };
+      if (!node) return null;
 
+      // Wenn der Node Kinder hat, filtere sie rekursiv und entferne null-Werte
+      const filteredChildren = node.children
+        ? node.children.map(filterNodesRecursively).filter(child => child !== null)
+        : [];
+
+      // Der Parent-Node soll nur erhalten bleiben, wenn entweder:
+      // - `predict_linkability` nicht "false" ist
+      // - oder er mindestens ein Kind hat, das erhalten bleibt
+      if (String(node.predict_linkability).toLowerCase() !== "false" || filteredChildren.length > 0) {
+        return { ...node, children: filteredChildren };
+      }
+
+      // Falls weder der Parent gültig ist noch Kinder übrig bleiben -> null zurückgeben
+      return null;
+    };
+
+    // Die gefilterte Liste der Nodes
     const filteredData = copiedData
       .map(filterNodesRecursively)
       .filter(node => node !== null);
 
     console.log("Nach Filterung unsichtbarer Nodes:", filteredData);
 
+    // Hierarchie aufbauen
     const buildHierarchy = (nodes) => {
       if (!nodes || nodes.length === 0) return null;
       const rootNode = nodes.find(node => node.parentId === null);
@@ -95,6 +99,20 @@ const Graph = ({ data, onNodeClick }) => {
       .attr("class", "node")
       .on("click", (event, d) => onNodeClick(d.data));
 
+    // Der Wurzelknoten (Base Node) bekommt die größte Größe
+    nodeGroups.append("circle")
+      .attr("r", d => {
+        if (d.depth === 0) {  // Der Base Node ist der Wurzelknoten (depth 0)
+          return 30;  // Größter Radius für den Base Node
+        }
+        if (d.data.type === "schema" || d.data.type === "table") {
+          return 20;  // Behalte die Standardgröße für Schema und Table
+        }
+        return 10;  // Kleinere Größe für Leaves
+      })
+      .attr("fill", d => getColorForSchema(d.data.schema));
+
+    // Datenbank-Schema-Icons hinzufügen
     nodeGroups.filter(d => d.data.type === "schema") 
       .append("image")
       .attr("xlink:href", databaseIcon)
@@ -103,16 +121,20 @@ const Graph = ({ data, onNodeClick }) => {
       .attr("x", -15)
       .attr("y", -15);
 
-    nodeGroups.filter(d => d.data.type !== "schema") 
-      .append("circle")
-      .attr("r", 8)
-      .attr("fill", d => getColorForSchema(d.data.schema));
+    // Tabellen-Icons hinzufügen
+    nodeGroups.filter(d => d.data.type === "table") 
+      .append("image")
+      .attr("xlink:href", tableIcon)
+      .attr("width", 30)
+      .attr("height", 30)
+      .attr("x", -15)
+      .attr("y", -15);
 
     const labels = g.selectAll("text")
       .data(nodes)
       .enter()
       .append("text")
-      .attr("x", d => d.x + 20)
+      .attr("x", d => d.x + 25) // Text nach rechts verschoben
       .attr("y", d => d.y + 5)
       .text(d => d.data.name)
       .style("font-size", "12px")
@@ -130,39 +152,14 @@ const Graph = ({ data, onNodeClick }) => {
       nodeGroups.attr("transform", d => `translate(${d.x},${d.y})`);
 
       labels
-        .attr("x", d => d.x + 20)
+        .attr("x", d => d.x + 25) // Text nach rechts verschoben
         .attr("y", d => d.y + 5);
     });
 
     nodeGroups.call(enableDrag(nodeGroups, linkElements, labels));
   }, [data]);
 
-  useEffect(() => {
-    d3.select(gRef.current)
-      .transition()
-      .duration(300)
-      .attr("transform", `scale(${zoomLevel})`);
-  }, [zoomLevel]);
-
-  return (
-    <div>
-      <h2 style={{ color: "#2c3e50" }}>Datenbank-Struktur Visualisierung</h2>
-      <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace" }}>
-        📌 Anleitung: CSV-Datei hochladen → Validierungsdatei hochladen → Verlinkungen erkunden<br />
-        ⚙️ Features: Zoom, Drag & Drop, Export, interaktive Knoten.
-      </p>
-      <input
-        type="range"
-        min="0.1"
-        max="2"
-        step="0.1"
-        value={zoomLevel}
-        onChange={(e) => setZoomLevel(Number(e.target.value))}
-      />
-      <ExportButton svgRef={svgRef} />
-      <svg ref={svgRef}></svg>
-    </div>
-  );
+  return <svg ref={svgRef}></svg>;
 };
 
 export default Graph;
