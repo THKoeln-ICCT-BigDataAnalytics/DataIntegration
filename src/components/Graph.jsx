@@ -157,6 +157,24 @@ const Graph = ({ data, onNodeClick }) => {
     });
 
     nodeGroups.call(enableDrag(nodeGroups, linkElements, labels));
+
+    // Doppelklick-Handler für Tabellen
+    nodeGroups.on("dblclick", (event, d) => {
+      if (d.data.type === "table") {
+        let angleStep = (2 * Math.PI) / d.children.length;
+        let radius = 50;
+        d.children.forEach((child, index) => {
+          child.x = d.x + radius * Math.cos(index * angleStep);
+          child.y = d.y + radius * Math.sin(index * angleStep);
+          d3.select(`[data-id='${child.id}']`)
+            .attr("transform", `translate(${child.x},${child.y})`);
+        });
+
+        // Drag-Interaktivität nach dem Doppelklick neu anwenden
+        nodeGroups.call(enableDrag(nodeGroups, linkElements, labels));
+      }
+    });
+
   }, [data]);
 
   return <svg ref={svgRef}></svg>;
