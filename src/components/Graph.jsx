@@ -177,7 +177,25 @@ const Graph = ({ data, onNodeClick }) => {
 
   }, [data]);
 
-  return <svg ref={svgRef}></svg>;
+  return (
+    <div>
+      <h2 style={{ color: "#2c3e50" }}>Datenbank-Struktur Visualisierung</h2>
+      <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace" }}>
+        📌 Anleitung: CSV-Datei hochladen → Validierungsdatei hochladen → Verlinkungen erkunden<br />
+        ⚙️ Features: Zoom, Drag & Drop, Export, interaktive Knoten.<br />
+        ℹ️ Hinweis: Doppelklick auf einen Tabelle öffnet eine detaillierte Ansicht der verbundenen Objekte.
+      </p>
+      <input
+        type="range"
+        min="0.1"
+        max="2"
+        step="0.1"
+        value={zoomLevel}
+        onChange={(e) => setZoomLevel(Number(e.target.value))}
+      />
+      <ExportButton svgRef={svgRef} />
+      <svg ref={svgRef}></svg>
+    </div>  );
 };
 
 export default Graph;
