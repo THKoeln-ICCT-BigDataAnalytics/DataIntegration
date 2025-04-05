@@ -97,7 +97,25 @@ const Graph = ({ data, onNodeClick }) => {
       .enter()
       .append("g")
       .attr("class", "node")
-      .on("click", (event, d) => onNodeClick(d.data));
+      .on("click", (event, d) => {
+        // Wenn Shift gedrückt wird UND es sich um eine Tabelle handelt
+        if (event.shiftKey && d.data.type === "table") {
+          let angleStep = (2 * Math.PI) / d.children.length;
+          let radius = 50;
+          d.children.forEach((child, index) => {
+            child.x = d.x + radius * Math.cos(index * angleStep);
+            child.y = d.y + radius * Math.sin(index * angleStep);
+            d3.selectAll(".node")
+              .filter(n => n.id === child.id)
+              .attr("transform", `translate(${child.x},${child.y})`);
+          });
+
+          // Drag-Interaktivität nach dem Shift+Klick neu anwenden
+          nodeGroups.call(enableDrag(nodeGroups, linkElements, labels));
+        } else {
+          onNodeClick(d.data);
+        }
+      });
 
     // Der Wurzelknoten (Base Node) bekommt die größte Größe
     nodeGroups.append("circle")
@@ -158,23 +176,7 @@ const Graph = ({ data, onNodeClick }) => {
 
     nodeGroups.call(enableDrag(nodeGroups, linkElements, labels));
 
-    // Doppelklick-Handler für Tabellen
-    nodeGroups.on("dblclick", (event, d) => {
-      if (d.data.type === "table") {
-        let angleStep = (2 * Math.PI) / d.children.length;
-        let radius = 50;
-        d.children.forEach((child, index) => {
-          child.x = d.x + radius * Math.cos(index * angleStep);
-          child.y = d.y + radius * Math.sin(index * angleStep);
-          d3.select(`[data-id='${child.id}']`)
-            .attr("transform", `translate(${child.x},${child.y})`);
-        });
-
-        // Drag-Interaktivität nach dem Doppelklick neu anwenden
-        nodeGroups.call(enableDrag(nodeGroups, linkElements, labels));
-      }
-    });
-
+    
   }, [data]);
 
   return (
@@ -183,7 +185,7 @@ const Graph = ({ data, onNodeClick }) => {
       <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace" }}>
         📌 Anleitung: CSV-Datei hochladen → Validierungsdatei hochladen → Verlinkungen erkunden<br />
         ⚙️ Features: Zoom, Drag & Drop, Export, interaktive Knoten.<br />
-        ℹ️ Hinweis: Doppelklick auf einen Tabelle öffnet eine detaillierte Ansicht der verbundenen Objekte.
+        ℹ️ Hinweis: Shift + Klick auf eine Tabelle öffnet eine detaillierte Ansicht der verbundenen Objekte.
       </p>
       <input
         type="range"
@@ -195,7 +197,8 @@ const Graph = ({ data, onNodeClick }) => {
       />
       <ExportButton svgRef={svgRef} />
       <svg ref={svgRef}></svg>
-    </div>  );
+    </div>
+  );
 };
 
 export default Graph;
