@@ -12,6 +12,16 @@ const Graph = ({ data, onNodeClick }) => {
   const zoomRef = useRef(d3.zoom().scaleExtent([0.1, 2]));
   const [zoomLevel, setZoomLevel] = useState(1);
 
+  // Funktion zum Herunterladen der Datei von GitHub
+  const downloadFile = async (fileUrl, filename) => {
+    const response = await fetch(fileUrl);
+    const blob = await response.blob();
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = filename; // Name der heruntergeladenen Datei
+    link.click();
+  };
+
   useEffect(() => {
     console.log("Empfangene Daten:", data);
     if (!data || data.length === 0) return;
@@ -19,14 +29,17 @@ const Graph = ({ data, onNodeClick }) => {
     const width = window.innerWidth * 0.9;
     const height = window.innerHeight * 0.8;
 
+    // SVG-Element erstellen
     const svg = d3.select(svgRef.current)
       .attr("width", width)
       .attr("height", height);
     
+    // Entferne alle vorherigen Elemente
     svg.selectAll("*").remove();
     const g = svg.append("g");
     gRef.current = g;
 
+    // Zoom-Event hinzufügen
     svg.call(zoomRef.current.on("zoom", (event) => {
       g.attr("transform", event.transform);
     }));
@@ -77,6 +90,7 @@ const Graph = ({ data, onNodeClick }) => {
     const nodes = root.descendants();
     const links = root.links();
 
+    // Simulation der Knoten und Verbindungen
     const simulation = d3.forceSimulation(nodes)
       .force("link", d3.forceLink(links).id(d => d.id).distance(180).strength(1))
       .force("charge", d3.forceManyBody().strength(-800))
@@ -84,6 +98,7 @@ const Graph = ({ data, onNodeClick }) => {
       .force("collide", d3.forceCollide().radius(130))
       .force("y", d3.forceY().strength(0.1));
 
+    // Linien für Verbindungen zwischen Knoten
     const linkElements = g.selectAll("line")
       .data(links)
       .enter()
@@ -92,6 +107,7 @@ const Graph = ({ data, onNodeClick }) => {
       .attr("stroke-width", 2)
       .attr("opacity", 0.8);
 
+    // Gruppen für die Knoten erstellen
     const nodeGroups = g.selectAll(".node")
       .data(nodes)
       .enter()
@@ -110,27 +126,27 @@ const Graph = ({ data, onNodeClick }) => {
               .attr("transform", `translate(${child.x},${child.y})`);
           });
 
-          // Drag-Interaktivität nach dem Shift+Klick neu anwenden
+           // Drag-Interaktivität nach dem Shift+Klick neu anwenden
           nodeGroups.call(enableDrag(nodeGroups, linkElements, labels));
         } else {
           onNodeClick(d.data);
         }
       });
 
-    // Der Wurzelknoten (Base Node) bekommt die größte Größe
+    // Knoten visuell darstellen
     nodeGroups.append("circle")
       .attr("r", d => {
-        if (d.depth === 0) {  // Der Base Node ist der Wurzelknoten (depth 0)
-          return 30;  // Größter Radius für den Base Node
+        if (d.depth === 0) {
+          return 30; // Der Base Node bekommt den größten Radius
         }
         if (d.data.type === "schema" || d.data.type === "table") {
-          return 20;  // Behalte die Standardgröße für Schema und Table
+          return 20; // Standardgröße für Schema und Table
         }
-        return 10;  // Kleinere Größe für Leaves
+        return 10; // Kleinere Größe für andere Knoten
       })
       .attr("fill", d => getColorForSchema(d.data.schema));
 
-    // Datenbank-Schema-Icons hinzufügen
+    // Schema-Knoten mit Datenbank-Symbol
     nodeGroups.filter(d => d.data.type === "schema") 
       .append("image")
       .attr("xlink:href", databaseIcon)
@@ -139,7 +155,7 @@ const Graph = ({ data, onNodeClick }) => {
       .attr("x", -15)
       .attr("y", -15);
 
-    // Tabellen-Icons hinzufügen
+    // Tabellen-Knoten mit Tabellen-Symbol
     nodeGroups.filter(d => d.data.type === "table") 
       .append("image")
       .attr("xlink:href", tableIcon)
@@ -148,6 +164,7 @@ const Graph = ({ data, onNodeClick }) => {
       .attr("x", -15)
       .attr("y", -15);
 
+    // Labels für die Knoten
     const labels = g.selectAll("text")
       .data(nodes)
       .enter()
@@ -160,6 +177,7 @@ const Graph = ({ data, onNodeClick }) => {
       .style("font-family", "Roboto Mono, monospace")
       .style("font-weight", "bold");
 
+    // Simulation "tick" für Knotenbewegung
     simulation.on("tick", () => {
       linkElements
         .attr("x1", d => d.source.x)
@@ -174,9 +192,10 @@ const Graph = ({ data, onNodeClick }) => {
         .attr("y", d => d.y + 5);
     });
 
+    // Dragging für Knoten aktivieren
     nodeGroups.call(enableDrag(nodeGroups, linkElements, labels));
 
-    
+
   }, [data]);
 
   return (
@@ -185,9 +204,24 @@ const Graph = ({ data, onNodeClick }) => {
       <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace" }}>
         📌 Anleitung: CSV-Datei hochladen → Validierungsdatei hochladen → Verlinkungen erkunden<br />
         ⚙️ Features: Zoom, Drag & Drop, Export, interaktive Knoten.<br />
-        ℹ️ Hinweis: Shift + Klick auf eine Tabelle öffnet eine detaillierte Ansicht der verbundenen Objekte.
+        ℹ️ Hinweis: Shift + Klick auf eine Tabelle öffnet eine detaillierte Ansicht der verbundenen Objekte.<br /><br />
+        Wenn die CSV-Datei lokal nicht vorhanden ist, per Knopfdruck aus dem GitHub-Repository heruntergeladen
       </p>
-      <input
+      <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginBottom: "20px" }}>
+        <button 
+          onClick={() => downloadFile("https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO_schema_elements_dataset.csv", "OC3FO_schema_elements_dataset.csv")}
+          style={{ padding: "10px 20px", backgroundColor: "#3498db", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}
+        >
+          CSV-Datei herunterladen
+        </button>
+        <button 
+          onClick={() => downloadFile("https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO_collaborative_scoping.csv", "OC3FO_collaborative_scoping.csv")}
+          style={{ padding: "10px 20px", backgroundColor: "#3498db", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}
+        >
+          Validitäts-CSV herunterladen
+        </button>
+        <ExportButton svgRef={svgRef} />
+        <input
         type="range"
         min="0.1"
         max="2"
@@ -195,7 +229,8 @@ const Graph = ({ data, onNodeClick }) => {
         value={zoomLevel}
         onChange={(e) => setZoomLevel(Number(e.target.value))}
       />
-      <ExportButton svgRef={svgRef} />
+      </div>
+      
       <svg ref={svgRef}></svg>
     </div>
   );
