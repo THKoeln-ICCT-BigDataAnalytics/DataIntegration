@@ -9,8 +9,11 @@ import tableIcon from "../assets/table.svg";
 const Graph = ({ data, onNodeClick }) => {
   const svgRef = useRef();
   const gRef = useRef();
+  const nodesRef = useRef(null);
+  const specialLinkGroupRef = useRef(null);
   const zoomRef = useRef(d3.zoom().scaleExtent([0.1, 2]));
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [selectedNodeId, setSelectedNodeId] = useState(null);
 
   // Funktion zum Herunterladen der Datei von GitHub
   const downloadFile = async (fileUrl, filename) => {
@@ -22,58 +25,91 @@ const Graph = ({ data, onNodeClick }) => {
     link.click();
   };
 
+  // Farbskala für cosine_similarity (-1 bis 1)
+  const colorScale = d3.scaleLinear()
+    .domain([0, 0.5, 1]) // Dreipunkt-Skala: negativ, neutral, positiv
+    .range(["red", "yellow", "green"]); // Blau (-1), Grau (0), Rot (1)
+
+  const updateSpecialLinks = () => {
+    if (!specialLinkGroupRef.current || !nodesRef.current) return;
+
+    const specialLinkGroup = d3.select(specialLinkGroupRef.current);
+    specialLinkGroup.selectAll("line").remove();
+
+    if (selectedNodeId) {
+      const selectedNode = nodesRef.current.find(n => n.data.id === selectedNodeId);
+      if (selectedNode && selectedNode.data && selectedNode.data.allLinks) {
+        const linkData = selectedNode.data.allLinks
+          .map(link => {
+            const targetNode = nodesRef.current.find(n => n.data.id === link.entity_b_id);
+            return targetNode ? {
+              source: selectedNode,
+              target: targetNode,
+              cosine_similarity: parseFloat(link.cosine_similarity),
+            } : null;
+          })
+          .filter(d => d !== null);
+
+        specialLinkGroup.selectAll("line")
+          .data(linkData)
+          .enter()
+          .append("line")
+          .attr("stroke", d => colorScale(d.cosine_similarity))
+          .attr("stroke-width", 2)
+          .attr("stroke-dasharray", "5,5")
+          .attr("x1", d => d.source.x)
+          .attr("y1", d => d.source.y)
+          .attr("x2", d => d.target.x)
+          .attr("y2", d => d.target.y);
+      }
+    }
+  };
+
   useEffect(() => {
     console.log("Empfangene Daten:", data);
-    if (!data || data.length === 0) return;
+    if (!data || data.length === 0) {
+      console.log("Abbruch: Keine Daten oder leeres Array");
+      return;
+    }
 
     const width = window.innerWidth * 0.9;
     const height = window.innerHeight * 0.8;
 
-    // SVG-Element erstellen
     const svg = d3.select(svgRef.current)
       .attr("width", width)
       .attr("height", height);
-    
-    // Entferne alle vorherigen Elemente
+
     svg.selectAll("*").remove();
     const g = svg.append("g");
     gRef.current = g;
 
-    // Zoom-Event hinzufügen
     svg.call(zoomRef.current.on("zoom", (event) => {
       g.attr("transform", event.transform);
     }));
 
     const copiedData = JSON.parse(JSON.stringify(data));
 
-    // Filtere rekursiv die Kinder
     const filterNodesRecursively = (node) => {
       if (!node) return null;
-
-      // Wenn der Node Kinder hat, filtere sie rekursiv und entferne null-Werte
       const filteredChildren = node.children
         ? node.children.map(filterNodesRecursively).filter(child => child !== null)
         : [];
-
-      // Der Parent-Node soll nur erhalten bleiben, wenn entweder:
-      // - `predict_linkability` nicht "false" ist
-      // - oder er mindestens ein Kind hat, das erhalten bleibt
       if (String(node.predict_linkability).toLowerCase() !== "false" || filteredChildren.length > 0) {
         return { ...node, children: filteredChildren };
       }
-
-      // Falls weder der Parent gültig ist noch Kinder übrig bleiben -> null zurückgeben
       return null;
     };
 
-    // Die gefilterte Liste der Nodes
     const filteredData = copiedData
       .map(filterNodesRecursively)
       .filter(node => node !== null);
 
     console.log("Nach Filterung unsichtbarer Nodes:", filteredData);
+    if (filteredData.length === 0) {
+      console.log("Abbruch: filteredData ist leer");
+      return;
+    }
 
-    // Hierarchie aufbauen
     const buildHierarchy = (nodes) => {
       if (!nodes || nodes.length === 0) return null;
       const rootNode = nodes.find(node => node.parentId === null);
@@ -85,12 +121,16 @@ const Graph = ({ data, onNodeClick }) => {
     };
 
     const root = buildHierarchy(filteredData);
-    if (!root) return;
+    console.log("Root Hierarchie:", root);
+    if (!root) {
+      console.log("Abbruch: Keine gültige Hierarchie erstellt");
+      return;
+    }
 
     const nodes = root.descendants();
+    nodesRef.current = nodes;
     const links = root.links();
 
-    // Simulation der Knoten und Verbindungen
     const simulation = d3.forceSimulation(nodes)
       .force("link", d3.forceLink(links).id(d => d.id).distance(180).strength(1))
       .force("charge", d3.forceManyBody().strength(-800))
@@ -98,8 +138,9 @@ const Graph = ({ data, onNodeClick }) => {
       .force("collide", d3.forceCollide().radius(130))
       .force("y", d3.forceY().strength(0.1));
 
-    // Linien für Verbindungen zwischen Knoten
-    const linkElements = g.selectAll("line")
+    const linkElements = g.append("g")
+      .attr("class", "links")
+      .selectAll("line")
       .data(links)
       .enter()
       .append("line")
@@ -107,47 +148,54 @@ const Graph = ({ data, onNodeClick }) => {
       .attr("stroke-width", 2)
       .attr("opacity", 0.8);
 
-    // Gruppen für die Knoten erstellen
-    const nodeGroups = g.selectAll(".node")
-      .data(nodes)
-      .enter()
-      .append("g")
-      .attr("class", "node")
-      .on("click", (event, d) => {
-        // Wenn Shift gedrückt wird UND es sich um eine Tabelle handelt
-        if (event.shiftKey && d.data.type === "table") {
-          let angleStep = (2 * Math.PI) / d.children.length;
-          let radius = 50;
-          d.children.forEach((child, index) => {
-            child.x = d.x + radius * Math.cos(index * angleStep);
-            child.y = d.y + radius * Math.sin(index * angleStep);
-            d3.selectAll(".node")
-              .filter(n => n.id === child.id)
-              .attr("transform", `translate(${child.x},${child.y})`);
-          });
+    const specialLinkGroup = g.append("g").attr("class", "special-links");
+    specialLinkGroupRef.current = specialLinkGroup.node();
 
-           // Drag-Interaktivität nach dem Shift+Klick neu anwenden
-          nodeGroups.call(enableDrag(nodeGroups, linkElements, labels));
-        } else {
-          onNodeClick(d.data);
-        }
-      });
+    const nodeGroups = g.append("g")
+    .selectAll(".node")
+    .data(nodes)
+    .enter()
+    .append("g")
+    .attr("class", "node")
+    .on("click", (event, d) => {
+      if (event.shiftKey && d.data.type === "table" && d.children?.length) {
+        const angleStep = (2 * Math.PI) / d.children.length;
+        const radius = 50;
+  
+        d.children.forEach((child, index) => {
+          child.x = d.x + radius * Math.cos(index * angleStep);
+          child.y = d.y + radius * Math.sin(index * angleStep);
+          d3.selectAll(".node")
+            .filter(n => n.id === child.id)
+            .attr("transform", `translate(${child.x},${child.y})`);
+        });
+  
+        nodeGroups.call(enableDrag(nodeGroups, linkElements, labels));
+      } else {
+        onNodeClick(d.data);
+      }
+    })
+    .on("dblclick", (event, d) => {
+      const nodeId = d.data.id;
+      setSelectedNodeId(selectedNodeId === nodeId ? null : nodeId);
+    });
+  
+  
+  // Kreise an die Node-Gruppen anhängen
+  nodeGroups.append("circle")
+    .attr("r", d => {
+      if (d.depth === 0) {
+        return 30; // Der Base Node bekommt den größten Radius
+      }
+      if (d.data.type === "schema" || d.data.type === "table") {
+        return 20; // Standardgröße für Schema und Table
+      }
+      return 10; // Kleinere Größe für andere Knoten
+    })
+    .attr("fill", d => getColorForSchema(d.data.schema));
+  
 
-    // Knoten visuell darstellen
-    nodeGroups.append("circle")
-      .attr("r", d => {
-        if (d.depth === 0) {
-          return 30; // Der Base Node bekommt den größten Radius
-        }
-        if (d.data.type === "schema" || d.data.type === "table") {
-          return 20; // Standardgröße für Schema und Table
-        }
-        return 10; // Kleinere Größe für andere Knoten
-      })
-      .attr("fill", d => getColorForSchema(d.data.schema));
-
-    // Schema-Knoten mit Datenbank-Symbol
-    nodeGroups.filter(d => d.data.type === "schema") 
+    nodeGroups.filter(d => d.data.type === "schema")
       .append("image")
       .attr("xlink:href", databaseIcon)
       .attr("width", 30)
@@ -155,21 +203,47 @@ const Graph = ({ data, onNodeClick }) => {
       .attr("x", -15)
       .attr("y", -15);
 
-    // Tabellen-Knoten mit Tabellen-Symbol
+        
     nodeGroups.filter(d => d.data.type === "table") 
-      .append("image")
-      .attr("xlink:href", tableIcon)
-      .attr("width", 30)
-      .attr("height", 30)
-      .attr("x", -15)
-      .attr("y", -15);
+    .append("image")
+    .attr("xlink:href", tableIcon)
+    .attr("width", 30)
+    .attr("height", 30)
+    .attr("x", -15)
+    .attr("y", -15);
 
-    // Labels für die Knoten
-    const labels = g.selectAll("text")
+    nodeGroups.filter(d => d.data.type !== "schema")
+      .append("circle")
+      .attr("r", 8)
+      .attr("fill", d => getColorForSchema(d.data.schema));
+
+      
+    const agreeMarkers = [
+      { key: "OC_ORACLE_agree", color: "rgb(0, 123, 255)", offset: -15 },
+      { key: "OC_MYSQL_agree", color: "rgb(255, 87, 51)", offset: -10 },
+      { key: "OC_SAP_agree", color: "rgb(255, 215, 0)", offset: -5 },
+      { key: "FORMULA_agree", color: "rgb(75, 181, 67)", offset: 0 }
+    ];
+
+    agreeMarkers.forEach(marker => {
+      const filteredNodes = nodeGroups.filter(d => {
+        const value = d.data[marker.key];
+        return value === 1 || value === "1" || value === true;
+      });
+      filteredNodes
+        .append("circle")
+        .attr("r", 4)
+        .attr("cx", marker.offset)
+        .attr("cy", 15)
+        .attr("fill", marker.color);
+    });
+
+    const labels = g.append("g")
+      .selectAll("text")
       .data(nodes)
       .enter()
       .append("text")
-      .attr("x", d => d.x + 25) // Text nach rechts verschoben
+      .attr("x", d => d.x + 20)
       .attr("y", d => d.y + 5)
       .text(d => d.data.name)
       .style("font-size", "12px")
@@ -177,7 +251,6 @@ const Graph = ({ data, onNodeClick }) => {
       .style("font-family", "Roboto Mono, monospace")
       .style("font-weight", "bold");
 
-    // Simulation "tick" für Knotenbewegung
     simulation.on("tick", () => {
       linkElements
         .attr("x1", d => d.source.x)
@@ -188,15 +261,29 @@ const Graph = ({ data, onNodeClick }) => {
       nodeGroups.attr("transform", d => `translate(${d.x},${d.y})`);
 
       labels
-        .attr("x", d => d.x + 25) // Text nach rechts verschoben
+        .attr("x", d => d.x + 20)
         .attr("y", d => d.y + 5);
+
+      updateSpecialLinks();
     });
 
-    // Dragging für Knoten aktivieren
     nodeGroups.call(enableDrag(nodeGroups, linkElements, labels));
 
+    updateSpecialLinks();
+  }, [data, onNodeClick]);
 
-  }, [data]);
+  useEffect(() => {
+    d3.select(gRef.current)
+      .transition()
+      .duration(300)
+      .attr("transform", `scale(${zoomLevel})`);
+  }, [zoomLevel]);
+
+  useEffect(() => {
+    if (gRef.current && nodesRef.current && specialLinkGroupRef.current) {
+      updateSpecialLinks();
+    }
+  }, [selectedNodeId]);
 
   return (
     <div>
