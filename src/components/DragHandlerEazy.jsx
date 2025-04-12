@@ -1,3 +1,5 @@
+//ungenutzte Klasse
+
 const enableDrag = (nodes, links, labels, usePerformanceMode = false) => {
     function updatePositions() {
       nodes.attr("cx", d => d.x).attr("cy", d => d.y);
