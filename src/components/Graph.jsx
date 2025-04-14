@@ -6,7 +6,7 @@ import enableDrag from "./DragHandler";
 import databaseIcon from "../assets/database.svg";
 import tableIcon from "../assets/table.svg";
 
-const Graph = ({ data, onNodeClick, sliderValue }) => { // sliderValue als Prop hinzufügen
+const Graph = ({ data, onNodeClick, sliderValue }) => {
   const svgRef = useRef();
   const gRef = useRef();
   const nodesRef = useRef(null);
@@ -47,10 +47,11 @@ const Graph = ({ data, onNodeClick, sliderValue }) => { // sliderValue als Prop 
         const linkData = selectedNode.data.allLinks
           .map(link => {
             const targetNode = nodesRef.current.find(n => n.data.id === link.entity_b_id);
-            return targetNode ? {
+            const cosineSimilarity = parseFloat(link.cosine_similarity);
+            return targetNode && cosineSimilarity > sliderValue ? {
               source: selectedNode,
               target: targetNode,
-              cosine_similarity: parseFloat(link.cosine_similarity),
+              cosine_similarity: cosineSimilarity,
             } : null;
           })
           .filter(d => d !== null);
@@ -283,7 +284,7 @@ const Graph = ({ data, onNodeClick, sliderValue }) => { // sliderValue als Prop 
     if (gRef.current && nodesRef.current && specialLinkGroupRef.current) {
       updateSpecialLinks();
     }
-  }, [selectedNodeId]);
+  }, [selectedNodeId, sliderValue]); // sliderValue als Abhängigkeit hinzufügen
 
   return (
     <div>
