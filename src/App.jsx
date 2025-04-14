@@ -6,6 +6,7 @@ import ValidityCheckerButton from "./components/ValidityCheckerButton";
 import LinkDataButton from "./components/LinkDataButton";
 import VSelector from "./components/VSelector";
 import LinkDataManager from "./components/LinkDataManager";
+import SliderControl from "./components/SliderControl";
 
 function App() {
   const [csvData, setCsvData] = useState([]);
@@ -15,6 +16,7 @@ function App() {
   const [showTest, setShowTest] = useState(false);
   const [vValue, setVValue] = useState(1);
   const [graphKey, setGraphKey] = useState(0);
+  const [sliderValue, setSliderValue] = useState(0.5);
 
   const refreshGraph = () => {
     setGraphKey(prevKey => prevKey + 1);
@@ -28,11 +30,9 @@ function App() {
       const newCsvData = manager.updateCsvData();
       console.log("Nach LinkDataManager - newCsvData:", newCsvData);
 
-      // Aktualisiere csvData mit neuer Referenz
-      setCsvData([...newCsvData]); // Neue Array-Referenz erzwingen
+      setCsvData([...newCsvData]);
       console.log("setCsvData aufgerufen mit:", [...newCsvData]);
 
-      // Aktualisiere selectedNode
       if (selectedNode) {
         const updatedNode = findNodeById(newCsvData, selectedNode.id);
         if (updatedNode) {
@@ -42,12 +42,9 @@ function App() {
           console.warn("SelectedNode nicht in newCsvData gefunden:", selectedNode.id);
         }
       }
-
-  
     }
   }, [linkData]);
 
-  // Debugging: Prüfe csvData nach jedem Update
   useEffect(() => {
     console.log("csvData nach State-Update:", csvData);
     if (selectedNode) {
@@ -78,7 +75,7 @@ function App() {
     <div style={{ textAlign: "center", padding: "20px" }}>
       <h1>CSV-Upload & Baum-Visualisierung</h1>
       <CsvUploader onDataLoaded={setCsvData} />
-      <Graph key={graphKey} data={csvData} onNodeClick={setSelectedNode} />
+      <Graph key={graphKey} data={csvData} onNodeClick={setSelectedNode} sliderValue={sliderValue} /> {/* sliderValue als Prop hinzufügen */}
       
       <ValidityCheckerButton onDataLoaded={(data) => {
         console.log("Empfangene Validity Data vor dem Speichern:", data);
@@ -109,6 +106,8 @@ function App() {
         setVValue={setVValue} 
         refreshGraph={refreshGraph}
       />
+
+      <SliderControl value={sliderValue} setValue={setSliderValue} />
 
       {selectedNode && (
         <div>

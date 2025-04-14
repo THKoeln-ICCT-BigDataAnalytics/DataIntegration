@@ -6,7 +6,7 @@ import enableDrag from "./DragHandler";
 import databaseIcon from "../assets/database.svg";
 import tableIcon from "../assets/table.svg";
 
-const Graph = ({ data, onNodeClick }) => {
+const Graph = ({ data, onNodeClick, sliderValue }) => { // sliderValue als Prop hinzufügen
   const svgRef = useRef();
   const gRef = useRef();
   const nodesRef = useRef(null);
@@ -15,20 +15,25 @@ const Graph = ({ data, onNodeClick }) => {
   const [zoomLevel, setZoomLevel] = useState(1);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
 
+  // Debug-Ausgabe für sliderValue
+  useEffect(() => {
+    console.log("Aktueller sliderValue in Graph:", sliderValue);
+  }, [sliderValue]);
+
   // Funktion zum Herunterladen der Datei von GitHub
   const downloadFile = async (fileUrl, filename) => {
     const response = await fetch(fileUrl);
     const blob = await response.blob();
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = filename; // Name der heruntergeladenen Datei
+    link.download = filename;
     link.click();
   };
 
   // Farbskala für cosine_similarity (-1 bis 1)
   const colorScale = d3.scaleLinear()
-    .domain([0, 0.5, 1]) // Dreipunkt-Skala: negativ, neutral, positiv
-    .range(["red", "yellow", "green"]); // Blau (-1), Grau (0), Rot (1)
+    .domain([0, 0.5, 1])
+    .range(["red", "yellow", "green"]);
 
   const updateSpecialLinks = () => {
     if (!specialLinkGroupRef.current || !nodesRef.current) return;
@@ -152,48 +157,45 @@ const Graph = ({ data, onNodeClick }) => {
     specialLinkGroupRef.current = specialLinkGroup.node();
 
     const nodeGroups = g.append("g")
-    .selectAll(".node")
-    .data(nodes)
-    .enter()
-    .append("g")
-    .attr("class", "node")
-    .on("click", (event, d) => {
-      if (event.shiftKey && d.data.type === "table" && d.children?.length) {
-        const angleStep = (2 * Math.PI) / d.children.length;
-        const radius = 50;
-  
-        d.children.forEach((child, index) => {
-          child.x = d.x + radius * Math.cos(index * angleStep);
-          child.y = d.y + radius * Math.sin(index * angleStep);
-          d3.selectAll(".node")
-            .filter(n => n.id === child.id)
-            .attr("transform", `translate(${child.x},${child.y})`);
-        });
-  
-        nodeGroups.call(enableDrag(nodeGroups, linkElements, labels));
-      } else {
-        onNodeClick(d.data);
-      }
-    })
-    .on("dblclick", (event, d) => {
-      const nodeId = d.data.id;
-      setSelectedNodeId(selectedNodeId === nodeId ? null : nodeId);
-    });
-  
-  
-  // Kreise an die Node-Gruppen anhängen
-  nodeGroups.append("circle")
-    .attr("r", d => {
-      if (d.depth === 0) {
-        return 30; // Der Base Node bekommt den größten Radius
-      }
-      if (d.data.type === "schema" || d.data.type === "table") {
-        return 20; // Standardgröße für Schema und Table
-      }
-      return 10; // Kleinere Größe für andere Knoten
-    })
-    .attr("fill", d => getColorForSchema(d.data.schema));
-  
+      .selectAll(".node")
+      .data(nodes)
+      .enter()
+      .append("g")
+      .attr("class", "node")
+      .on("click", (event, d) => {
+        if (event.shiftKey && d.data.type === "table" && d.children?.length) {
+          const angleStep = (2 * Math.PI) / d.children.length;
+          const radius = 50;
+
+          d.children.forEach((child, index) => {
+            child.x = d.x + radius * Math.cos(index * angleStep);
+            child.y = d.y + radius * Math.sin(index * angleStep);
+            d3.selectAll(".node")
+              .filter(n => n.id === child.id)
+              .attr("transform", `translate(${child.x},${child.y})`);
+          });
+
+          nodeGroups.call(enableDrag(nodeGroups, linkElements, labels));
+        } else {
+          onNodeClick(d.data);
+        }
+      })
+      .on("dblclick", (event, d) => {
+        const nodeId = d.data.id;
+        setSelectedNodeId(selectedNodeId === nodeId ? null : nodeId);
+      });
+
+    nodeGroups.append("circle")
+      .attr("r", d => {
+        if (d.depth === 0) {
+          return 30;
+        }
+        if (d.data.type === "schema" || d.data.type === "table") {
+          return 20;
+        }
+        return 10;
+      })
+      .attr("fill", d => getColorForSchema(d.data.schema));
 
     nodeGroups.filter(d => d.data.type === "schema")
       .append("image")
@@ -203,21 +205,19 @@ const Graph = ({ data, onNodeClick }) => {
       .attr("x", -15)
       .attr("y", -15);
 
-        
     nodeGroups.filter(d => d.data.type === "table") 
-    .append("image")
-    .attr("xlink:href", tableIcon)
-    .attr("width", 30)
-    .attr("height", 30)
-    .attr("x", -15)
-    .attr("y", -15);
+      .append("image")
+      .attr("xlink:href", tableIcon)
+      .attr("width", 30)
+      .attr("height", 30)
+      .attr("x", -15)
+      .attr("y", -15);
 
     nodeGroups.filter(d => d.data.type !== "schema")
       .append("circle")
       .attr("r", 8)
       .attr("fill", d => getColorForSchema(d.data.schema));
 
-      
     const agreeMarkers = [
       { key: "OC_ORACLE_agree", color: "rgb(0, 123, 255)", offset: -15 },
       { key: "OC_MYSQL_agree", color: "rgb(255, 87, 51)", offset: -10 },
@@ -309,13 +309,13 @@ const Graph = ({ data, onNodeClick }) => {
         </button>
         <ExportButton svgRef={svgRef} />
         <input
-        type="range"
-        min="0.1"
-        max="2"
-        step="0.1"
-        value={zoomLevel}
-        onChange={(e) => setZoomLevel(Number(e.target.value))}
-      />
+          type="range"
+          min="0.1"
+          max="2"
+          step="0.1"
+          value={zoomLevel}
+          onChange={(e) => setZoomLevel(Number(e.target.value))}
+        />
       </div>
       
       <svg ref={svgRef}></svg>
