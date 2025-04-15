@@ -166,7 +166,7 @@ const Graph = ({ data, onNodeClick, sliderValue }) => {
       .on("click", (event, d) => {
         if (event.shiftKey && d.data.type === "table" && d.children?.length) {
           const angleStep = (2 * Math.PI) / d.children.length;
-          const radius = 50;
+          const radius = 120;
 
           d.children.forEach((child, index) => {
             child.x = d.x + radius * Math.cos(index * angleStep);
@@ -308,6 +308,13 @@ const Graph = ({ data, onNodeClick, sliderValue }) => {
         >
           Validitäts-CSV herunterladen
         </button>
+        <button 
+          onClick={() => downloadFile("https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3_linkages.csv", "OC3_linkages.csv")}
+          style={{ padding: "10px 20px", backgroundColor: "#3498db", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}
+>
+          Linkages-CSV herunterladen
+        </button>
+
         <ExportButton svgRef={svgRef} />
         <input
           type="range"
