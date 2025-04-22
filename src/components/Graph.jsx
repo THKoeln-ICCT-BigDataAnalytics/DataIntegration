@@ -290,10 +290,11 @@ const Graph = ({ data, onNodeClick, sliderValue }) => {
     <div>
       <h2 style={{ color: "#2c3e50" }}>Datenbank-Struktur Visualisierung</h2>
       <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace" }}>
-        📌 Anleitung: CSV-Datei hochladen → Validierungsdatei hochladen → Verlinkungen erkunden<br />
+        📌 Anleitung: CSV-Datei hochladen → Validierungsdatei hochladen → Verlinkungsdatei hochladen → Verlinkungen erkunden<br />
         ⚙️ Features: Zoom, Drag & Drop, Export, interaktive Knoten.<br />
-        ℹ️ Hinweis: Shift + Klick auf eine Tabelle öffnet eine detaillierte Ansicht der verbundenen Objekte.<br /><br />
-        Wenn die CSV-Datei lokal nicht vorhanden ist, per Knopfdruck aus dem GitHub-Repository heruntergeladen
+        ℹ️ Hinweis: Shift + Klick auf eine Tabelle öffnet eine detaillierte Ansicht der verbundenen Objekte. <br />
+        Doppelklick öffnet eine detaillierte Ansicht der Verlinkungen<br /><br />
+        Wenn die CSV-Dateien lokal nicht vorhanden sind, per Knopfdruck aus dem GitHub-Repository herunterladen
       </p>
       <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginBottom: "20px" }}>
         <button 
@@ -309,7 +310,7 @@ const Graph = ({ data, onNodeClick, sliderValue }) => {
           Validitäts-CSV herunterladen
         </button>
         <button 
-          onClick={() => downloadFile("https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3_linkages.csv", "OC3_linkages.csv")}
+          onClick={() => downloadFile("https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO_linkages_cossimilarity.csv", "OC3_linkages.csv")}
           style={{ padding: "10px 20px", backgroundColor: "#3498db", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}
 >
           Linkages-CSV herunterladen
