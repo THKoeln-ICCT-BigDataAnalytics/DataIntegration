@@ -73,7 +73,7 @@ function App() {
 
   return (
     <div style={{ textAlign: "center", padding: "20px" }}>
-      <h1>CSV-Upload & Baum-Visualisierung</h1>
+      <h1>Data Integration Web Tool</h1>
       <CsvUploader onDataLoaded={setCsvData} />
       <Graph key={graphKey} data={csvData} onNodeClick={setSelectedNode} sliderValue={sliderValue} /> {/* sliderValue als Prop hinzufügen */}
       
