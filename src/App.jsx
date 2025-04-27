@@ -10,6 +10,8 @@ import SliderControl from "./components/SliderControl";
 
 function App() {
   const [csvData, setCsvData] = useState([]);
+ 
+
   const [validityData, setValidityData] = useState([]);
   const [linkData, setLinkData] = useState([]);
   const [selectedNode, setSelectedNode] = useState(null);
@@ -74,31 +76,46 @@ function App() {
   return (
     <div style={{ textAlign: "center", padding: "20px" }}>
       <h1>CSV-Upload & Baum-Visualisierung</h1>
-      <CsvUploader onDataLoaded={setCsvData} />
-      <Graph key={graphKey} data={csvData} onNodeClick={setSelectedNode} sliderValue={sliderValue} /> {/* sliderValue als Prop hinzufügen */}
       
-      <ValidityCheckerButton onDataLoaded={(data) => {
-        console.log("Empfangene Validity Data vor dem Speichern:", data);
-        if (data.length > 0) {
-          setValidityData(data);
-          console.log("Validity Data erfolgreich gespeichert.");
-        } else {
-          console.warn("Empfangene Validity Data ist leer!");
-        }
-      }} />
-      
-      <LinkDataButton 
-        onDataLoaded={(data) => {
-          console.log("Empfangene Link Data vor dem Speichern:", data);
-          if (data.length > 0) {
-            setLinkData(data);
-            console.log("Link Data erfolgreich gespeichert.");
-          } else {
-            console.warn("Empfangene Link Data ist leer!");
-          }
-        }} 
-      />
+      {/* Container for buttons with Flexbox to display them side by side */}
+      <div style={{ 
+        display: "flex", 
+        justifyContent: "center", 
+        gap: "10px", 
+        marginBottom: "20px" 
+      }}>
+        <CsvUploader onDataLoaded={setCsvData} />
+        <ValidityCheckerButton 
+          onDataLoaded={(data) => {
+            console.log("Empfangene Validity Data vor dem Speichern:", data);
+            if (data.length > 0) {
+              setValidityData(data);
+              console.log("Validity Data erfolgreich gespeichert.");
+            } else {
+              console.warn("Empfangene Validity Data ist leer!");
+            }
+          }} 
+        />
+        <LinkDataButton 
+          onDataLoaded={(data) => {
+            console.log("Empfangene Link Data vor dem Speichern:", data);
+            if (data.length > 0) {
+              setLinkData(data);
+              console.log("Link Data erfolgreich gespeichert.");
+            } else {
+              console.warn("Empfangene Link Data ist leer!");
+            }
+          }} 
+        />
+      </div>
 
+      <Graph 
+        key={graphKey} 
+        data={csvData} 
+        onNodeClick={setSelectedNode} 
+        sliderValue={sliderValue} 
+      />
+      
       <VSelector 
         validityData={validityData} 
         graphNodes={csvData} 
