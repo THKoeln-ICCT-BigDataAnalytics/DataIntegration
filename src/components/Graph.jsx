@@ -166,7 +166,7 @@ const Graph = ({ data, onNodeClick, sliderValue }) => {
       .on("click", (event, d) => {
         if (event.shiftKey && d.data.type === "table" && d.children?.length) {
           const angleStep = (2 * Math.PI) / d.children.length;
-          const radius = 50;
+          const radius = 120;
 
           d.children.forEach((child, index) => {
             child.x = d.x + radius * Math.cos(index * angleStep);
@@ -288,26 +288,35 @@ const Graph = ({ data, onNodeClick, sliderValue }) => {
 
   return (
     <div>
-      <h2 style={{ color: "#2c3e50" }}>Datenbank-Struktur Visualisierung</h2>
-      <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace" }}>
-        📌 Anleitung: CSV-Datei hochladen → Validierungsdatei hochladen → Verlinkungen erkunden<br />
-        ⚙️ Features: Zoom, Drag & Drop, Export, interaktive Knoten.<br />
-        ℹ️ Hinweis: Shift + Klick auf eine Tabelle öffnet eine detaillierte Ansicht der verbundenen Objekte.<br /><br />
-        Wenn die CSV-Datei lokal nicht vorhanden ist, per Knopfdruck aus dem GitHub-Repository heruntergeladen
-      </p>
-      <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginBottom: "20px" }}>
-        <button 
+      <button 
           onClick={() => downloadFile("https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO_schema_elements_dataset.csv", "OC3FO_schema_elements_dataset.csv")}
           style={{ padding: "10px 20px", backgroundColor: "#3498db", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}
         >
-          CSV-Datei herunterladen
+          Download CSV file
         </button>
         <button 
           onClick={() => downloadFile("https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO_collaborative_scoping.csv", "OC3FO_collaborative_scoping.csv")}
           style={{ padding: "10px 20px", backgroundColor: "#3498db", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}
         >
-          Validitäts-CSV herunterladen
+          Download validation CSV
         </button>
+        <button 
+          onClick={() => downloadFile("https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO_linkages_cossimilarity.csv", "OC3_linkages.csv")}
+          style={{ padding: "10px 20px", backgroundColor: "#3498db", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}
+        >
+          Download linkages CSV
+        </button>
+
+      <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace" }}>
+        📌 Instructions: Upload CSV file → Upload validation file → Upload linkage file → Explore the linkages<br />
+        ⚙️ Features: Zoom, Drag & Drop, Export, interactive nodes.<br />
+        ℹ️ Note: Shift + click on a table opens a detailed view of the connected objects. <br />
+        Double-click opens a detailed view of the linkages<br /><br />
+        If the CSV files are not available locally, they can be downloaded from the GitHub repository with a single click.
+      </p>
+      <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginBottom: "20px" }}>
+        
+  
         <ExportButton svgRef={svgRef} />
         <input
           type="range"
@@ -318,8 +327,7 @@ const Graph = ({ data, onNodeClick, sliderValue }) => {
           onChange={(e) => setZoomLevel(Number(e.target.value))}
         />
       </div>
-      
-      <svg ref={svgRef}></svg>
+        <svg ref={svgRef}></svg>
     </div>
   );
 };
