@@ -1,5 +1,7 @@
 # DataIntegration
 Data-Integration Web-Tool 
-for actual code basis please look into dev branch
+modular components in src/components
+main data in App.jsx in src
+
 
 GitHub pages deployed and is live at https://thkoeln-icct-bigdataanalytics.github.io/DataIntegration/
