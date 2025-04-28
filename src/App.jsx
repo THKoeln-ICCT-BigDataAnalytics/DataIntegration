@@ -75,7 +75,7 @@ function App() {
 
   return (
     <div style={{ textAlign: "center", padding: "20px" }}>
-      <h1>CSV-Upload & Baum-Visualisierung</h1>
+      <h1>Data Integration Web Tool</h1>
       
       {/* Container for buttons with Flexbox to display them side by side */}
       <div style={{ 
