@@ -75,7 +75,7 @@ const CsvUploader = ({ onDataLoaded }) => {
 
   return (
     <div>
-      <h2>Upload CSV-Datei </h2>
+      <h2>Upload CSV-Data </h2>
       <input type="file" accept=".csv" onChange={handleFileUpload} />
     </div>
   );

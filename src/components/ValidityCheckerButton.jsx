@@ -46,7 +46,7 @@ const ValidityCheckerButton = ({ onDataLoaded }) => {
 
   return (
     <div>
-      <h2>Upload Validitäts-CSV </h2>
+      <h2>Upload Validity-CSV </h2>
       <input type="file" accept=".csv" onChange={handleFileUpload} />
     </div>
   );

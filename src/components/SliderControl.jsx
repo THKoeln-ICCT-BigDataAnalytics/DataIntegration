@@ -1,5 +1,5 @@
 import React from "react";
-
+//Aktualisierung triggert automatisch ohne weitere Implementierung die Veränderung der Verlinkungen. Wird auch hier refreshGraph ausgelöst
 function SliderControl({ value, setValue }) {
   const handleChange = (event) => {
     setValue(parseFloat(event.target.value));
@@ -7,7 +7,7 @@ function SliderControl({ value, setValue }) {
 
   return (
     <div style={{ margin: "20px 0" }}>
-      <label htmlFor="slider">Schieberegler (0 bis 1): </label>
+      <label htmlFor="slider">Link Limit (0 to 1): </label>
       <input
         type="range"
         id="slider"

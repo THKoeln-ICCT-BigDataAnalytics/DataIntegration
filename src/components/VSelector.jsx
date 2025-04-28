@@ -64,7 +64,7 @@ const VSelector = ({ vValue, setVValue, validityData, graphNodes = [], refreshGr
 
   return (
     <div style={{ margin: "20px" }}>
-      <label htmlFor="vRange">Wähle V-Wert: {vValue}</label>
+      <label htmlFor="vRange">Choose V Value for Validation: {vValue}</label>
       <input
         id="vRange"
         type="range"

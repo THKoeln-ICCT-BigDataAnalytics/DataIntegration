@@ -34,7 +34,7 @@ const ExportButton = ({ svgRef }) => {
     img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgString)));
   };
 
-  return <button onClick={exportAsPng}>Export als PNG</button>;
+  return <button onClick={exportAsPng}>Export as PNG</button>;
 };
 
 export default ExportButton;

@@ -129,7 +129,7 @@ function App() {
       {selectedNode && (
         <div>
           <button onClick={() => setShowTest(!showTest)}>
-            {showTest ? "Test ausblenden" : "Test anzeigen"}
+            {showTest ? "Hide Details" : "Show Details"}
           </button>
           {showTest && <TestComponent node={selectedNode} />}
         </div>
