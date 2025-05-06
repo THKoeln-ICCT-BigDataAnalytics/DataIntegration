@@ -1,6 +1,6 @@
 import React from "react";
 import Papa from "papaparse";
-
+//scoping
 const ValidityCheckerButton = ({ onDataLoaded }) => {
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
@@ -46,7 +46,7 @@ const ValidityCheckerButton = ({ onDataLoaded }) => {
 
   return (
     <div>
-      <h2>Upload Validity-CSV </h2>
+      <h2>Upload Scoping-CSV </h2>
       <input type="file" accept=".csv" onChange={handleFileUpload} />
     </div>
   );

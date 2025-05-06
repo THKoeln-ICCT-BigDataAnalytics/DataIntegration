@@ -7,7 +7,7 @@ function SliderControl({ value, setValue }) {
 
   return (
     <div style={{ margin: "20px 0" }}>
-      <label htmlFor="slider">Link Limit (0 to 1): </label>
+      <label htmlFor="slider">Similarity Threshold(0 to 1): </label>
       <input
         type="range"
         id="slider"
