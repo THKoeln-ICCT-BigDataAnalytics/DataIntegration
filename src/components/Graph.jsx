@@ -292,27 +292,27 @@ const Graph = ({ data, onNodeClick, sliderValue }) => {
           onClick={() => downloadFile("https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO_schema_elements_dataset.csv", "OC3FO_schema_elements_dataset.csv")}
           style={{ padding: "10px 20px", backgroundColor: "#3498db", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}
         >
-          Download CSV file
+          Download CSV sample
         </button>
         <button 
           onClick={() => downloadFile("https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO_collaborative_scoping.csv", "OC3FO_collaborative_scoping.csv")}
           style={{ padding: "10px 20px", backgroundColor: "#3498db", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}
         >
-          Download validation CSV
+          Download Scoping sample
         </button>
         <button 
           onClick={() => downloadFile("https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO_linkages_cossimilarity.csv", "OC3_linkages.csv")}
           style={{ padding: "10px 20px", backgroundColor: "#3498db", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}
         >
-          Download linkages CSV
+          Download linkage sample
         </button>
 
       <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace" }}>
-        📌 Instructions: Upload CSV file → Upload validation file → Upload linkage file → Explore the linkages<br />
+        📌 Instructions: Upload CSV file → Upload scoping file → Upload linkage file → Explore the linkages<br />
         ⚙️ Features: Zoom, Drag & Drop, Export, interactive nodes.<br />
         ℹ️ Note: Shift + click on a table opens a detailed view of the connected objects. <br />
         Double-click opens a detailed view of the linkages<br /><br />
-        If the CSV files are not available locally, they can be downloaded from the GitHub repository with a single click.
+        If the CSV files are not available locally, samples can be downloaded from the GitHub repository with a single click.
       </p>
       <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginBottom: "20px" }}>
         
