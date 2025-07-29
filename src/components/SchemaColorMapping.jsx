@@ -4,10 +4,10 @@ const colorCache = new Map();
 
 // Feste Farben für bekannte Schemas
 const fixedColors = new Map([
-  ["OC-ORACLE", "rgb(0, 123, 255)"],  // Blau
+  ["OC-ORACLE", "rgb(75, 181, 67)"],  // Grün
   ["OC-MYSQL", "rgb(255, 87, 51)"],   // Orange/Rot
   ["OC-SAP", "rgb(255, 215, 0)"],     // Gelb
-  ["FORMULA", "rgb(75, 181, 67)"],    // Grün
+  ["FORMULA", "rgb(0, 123, 255)"],    // Blau
 ]);
 
 const getColorForSchema = (schema) => {
