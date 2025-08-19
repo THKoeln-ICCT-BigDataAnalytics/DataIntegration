@@ -4,16 +4,16 @@ import Graph from "./components/Graph";
 import TestComponent from "./components/TestComponent";
 import ValidityCheckerButton from "./components/ValidityCheckerButton";
 import LinkDataButton from "./components/LinkDataButton";
+import CorrelationLinkButton from "./components/CorrelationLinkButton"; 
 import VSelector from "./components/VSelector";
 import LinkDataManager from "./components/LinkDataManager";
 import SliderControl from "./components/SliderControl";
 
 function App() {
   const [csvData, setCsvData] = useState([]);
- 
-
   const [validityData, setValidityData] = useState([]);
   const [linkData, setLinkData] = useState([]);
+  const [correlationData, setCorrelationData] = useState([]); 
   const [selectedNode, setSelectedNode] = useState(null);
   const [showTest, setShowTest] = useState(false);
   const [vValue, setVValue] = useState(1);
@@ -74,6 +74,7 @@ function App() {
   }, [linkData]);
 
   return (
+    
     <div style={{ textAlign: "center", padding: "20px" }}>
       <h1>Data Integration Web Tool</h1>
       
@@ -107,6 +108,18 @@ function App() {
             }
           }} 
         />
+        <CorrelationLinkButton 
+         onDataLoaded={(data) => {
+          console.log("Empfangene Correlation Data vor dem Speichern:", data);
+          if (data.length > 0) {
+          setCorrelationData(data);
+          console.log("Correlation Data erfolgreich gespeichert.");
+          } else {
+            console.warn("Empfangene Correlation Data ist leer!");
+          }
+        }}   
+      />
+
       </div>
 
       <Graph 
@@ -114,6 +127,8 @@ function App() {
         data={csvData} 
         onNodeClick={setSelectedNode} 
         sliderValue={sliderValue} 
+        correlationData={correlationData}
+        currentV={vValue}
       />
       
       <VSelector 

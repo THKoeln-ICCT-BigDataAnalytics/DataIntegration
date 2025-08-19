@@ -6,11 +6,12 @@ import enableDrag from "./DragHandler";
 import databaseIcon from "../assets/database.svg";
 import tableIcon from "../assets/table.svg";
 
-const Graph = ({ data, onNodeClick, sliderValue }) => {
+const Graph = ({ data, onNodeClick, sliderValue, correlationData = [], currentV }) => {
   const svgRef = useRef();
   const gRef = useRef();
   const nodesRef = useRef(null);
   const specialLinkGroupRef = useRef(null);
+  const correlationLinkGroupRef = useRef(null); 
   const zoomRef = useRef(d3.zoom().scaleExtent([0.1, 2]));
   const [zoomLevel, setZoomLevel] = useState(1);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
@@ -70,6 +71,70 @@ const Graph = ({ data, onNodeClick, sliderValue }) => {
       }
     }
   };
+
+ // Korrelationen aktualisieren 
+  const updateCorrelationLinks = () => {
+    if (!correlationLinkGroupRef.current || !nodesRef.current || correlationData.length === 0) return;
+
+  console.log("updateCorrelationLinks gestartet");
+  const correlationLinkGroup = d3.select(correlationLinkGroupRef.current);
+  correlationLinkGroup.selectAll("*").remove();
+
+  // Schema-Namen normalisieren
+  const normalizeSchemaName = (name) => {
+    return String(name || "")
+      .toLowerCase()
+      .trim()
+      .replace(/_agree$/, ""); // "_agree" entfernen
+  };
+
+  // Nur die Schema-Nodes aus allen vorhandenen Nodes herausfiltern
+  const schemaNodes = nodesRef.current.filter(n => n.data.type === "schema");
+  console.log("SchemaNodes:", schemaNodes.map(n => n.data.schema));
+
+  // Korrelationen auf die aktuelle Variante (v) einschränken
+  const filteredCorrelations = correlationData.filter(
+    d => Number(d.v) === Number(currentV)
+  );
+  console.log(`Gefilterte Korrelationen für v=${currentV}:`, filteredCorrelations);
+
+  filteredCorrelations.forEach(d => {
+  // Schlüssel für beide Schemas vereinheitlichen
+  const keyA = String(d.schema_a || d.source || "").toLowerCase().trim();
+  const keyB = String(d.schema_b || d.target || "").toLowerCase().trim();
+
+  // Zugehörige Schema-Nodes im Array suchen
+  const nodeA = schemaNodes.find(n => normalizeSchemaName(n.data.schema) === keyA);
+  const nodeB = schemaNodes.find(n => normalizeSchemaName(n.data.schema) === keyB);
+
+  // Wenn einer der beiden Nodes nicht existiert, abbrechen
+  if (!nodeA || !nodeB) {
+    console.warn("Schema nicht gefunden:", d.schema_a || d.source, d.schema_b || d.target);
+    return;
+  }
+
+    // Linie zeichnen
+    correlationLinkGroup
+      .append("line")
+      .attr("stroke", "blue")
+      .attr("stroke-width", 3)
+      .attr("x1", nodeA.x)
+      .attr("y1", nodeA.y)
+      .attr("x2", nodeB.x)
+      .attr("y2", nodeB.y);
+
+    // Text mit Korrelationswert
+    correlationLinkGroup
+      .append("text")
+      .attr("fill", "black")
+      .style("font-size", "18px")
+      .attr("font-weight", "bold")
+      .attr("x", (nodeA.x + nodeB.x) / 2)
+      .attr("y", (nodeA.y + nodeB.y) / 2-10)
+      .text(Number(d.correlation_value || d.all).toFixed(2));
+  });
+};
+
 
   useEffect(() => {
     console.log("Empfangene Daten:", data);
@@ -157,6 +222,9 @@ const Graph = ({ data, onNodeClick, sliderValue }) => {
     const specialLinkGroup = g.append("g").attr("class", "special-links");
     specialLinkGroupRef.current = specialLinkGroup.node();
 
+    const correlationLinkGroup = g.append("g").attr("class", "correlation-links"); 
+    correlationLinkGroupRef.current = correlationLinkGroup.node();
+
     const nodeGroups = g.append("g")
       .selectAll(".node")
       .data(nodes)
@@ -176,7 +244,7 @@ const Graph = ({ data, onNodeClick, sliderValue }) => {
               .attr("transform", `translate(${child.x},${child.y})`);
           });
 
-          nodeGroups.call(enableDrag(nodeGroups, linkElements, labels));
+          //nodeGroups.call(enableDrag(nodeGroups, linkElements, labels, correlationLinkGroupRef.current));
         } else {
           onNodeClick(d.data);
         }
@@ -252,6 +320,8 @@ const Graph = ({ data, onNodeClick, sliderValue }) => {
       .style("font-family", "Roboto Mono, monospace")
       .style("font-weight", "bold");
 
+      nodeGroups.call(enableDrag(nodeGroups, linkElements, labels, correlationLinkGroupRef.current));
+      
     simulation.on("tick", () => {
       linkElements
         .attr("x1", d => d.source.x)
@@ -266,11 +336,13 @@ const Graph = ({ data, onNodeClick, sliderValue }) => {
         .attr("y", d => d.y + 5);
 
       updateSpecialLinks();
+      updateCorrelationLinks(); 
     });
 
     nodeGroups.call(enableDrag(nodeGroups, linkElements, labels));
 
     updateSpecialLinks();
+    updateCorrelationLinks(); 
   }, [data, onNodeClick]);
 
   useEffect(() => {
@@ -285,6 +357,14 @@ const Graph = ({ data, onNodeClick, sliderValue }) => {
       updateSpecialLinks();
     }
   }, [selectedNodeId, sliderValue]); // sliderValue als Abhängigkeit hinzufügen
+
+  useEffect(() => {
+    if (gRef.current && nodesRef.current && correlationLinkGroupRef.current) {
+      updateCorrelationLinks();
+    }
+  }, [correlationData, currentV]); 
+
+  
 
   return (
     <div>
@@ -306,17 +386,21 @@ const Graph = ({ data, onNodeClick, sliderValue }) => {
         >
           Download linkage sample
         </button>
+        <button 
+          onClick={() => downloadFile("https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/Korrelation_OC3FO.csv", "Korrelation_OC3FO.csv")}
+          style={{ padding: "10px 20px", backgroundColor: "#3498db", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}
+        >
+          Download correlation sample
+        </button>
 
       <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace" }}>
-        📌 Instructions: Upload CSV file → Upload scoping file → Upload linkage file → Explore the linkages<br />
+        📌 Instructions: Upload CSV file → Upload scoping file → Upload linkage file → Upload correlation file → Explore the linkages and correlations<br />
         ⚙️ Features: Zoom, Drag & Drop, Export, interactive nodes.<br />
         ℹ️ Note: Shift + click on a table opens a detailed view of the connected objects. <br />
         Double-click opens a detailed view of the linkages<br /><br />
         If the CSV files are not available locally, samples can be downloaded from the GitHub repository with a single click.
       </p>
       <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginBottom: "20px" }}>
-        
-  
         <ExportButton svgRef={svgRef} />
         <input
           type="range"
