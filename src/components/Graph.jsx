@@ -368,23 +368,23 @@ const Graph = ({ data, onNodeClick, sliderValue, correlationData = [], currentV 
     // Files info for download + auto upload
   const files = [
     {
-      url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO_schema_elements_dataset.csv",
-      filename: "OC3FO_schema_elements_dataset.csv",
+      url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/schema_graph.csv",
+      filename: "OC3FO_schema_graph.csv",
       uploadInputId: "upload_schema_graph",
     },
     {
-      url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO_collaborative_scoping.csv",
+      url: "https://github.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/raw/refs/heads/main/data/OC3FO/collaborative_scoping.csv",
       filename: "OC3FO_collaborative_scoping.csv",
       uploadInputId: "upload_collaborative_scoping",
     },
     {
-      url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO_linkages_cossimilarity.csv",
+      url: "https://github.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/raw/refs/heads/main/data/OC3FO/linkages.csv",
       filename: "OC3_linkages.csv",
       uploadInputId: "upload_linkages",
     },
     {
-      url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/Korrelation_OC3FO.csv",
-      filename: "Korrelation_OC3FO.csv",
+      url: "https://github.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/raw/refs/heads/main/data/OC3FO/correlation.csv",
+      filename: "OC3FO_correlation.csv",
       uploadInputId: "upload_correlation",
     },
   ];
