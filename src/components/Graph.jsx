@@ -365,33 +365,88 @@ const Graph = ({ data, onNodeClick, sliderValue, correlationData = [], currentV 
   }, [correlationData, currentV]); 
 
   
+    // Files info for download + auto upload
+  const files = [
+    {
+      url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO_schema_elements_dataset.csv",
+      filename: "OC3FO_schema_elements_dataset.csv",
+      uploadInputId: "upload_schema_graph",
+    },
+    {
+      url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO_collaborative_scoping.csv",
+      filename: "OC3FO_collaborative_scoping.csv",
+      uploadInputId: "upload_collaborative_scoping",
+    },
+    {
+      url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO_linkages_cossimilarity.csv",
+      filename: "OC3_linkages.csv",
+      uploadInputId: "upload_linkages",
+    },
+    {
+      url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/Korrelation_OC3FO.csv",
+      filename: "Korrelation_OC3FO.csv",
+      uploadInputId: "upload_correlation",
+    },
+  ];
+
+  // Async function to download files and trigger upload inputs
+  const downloadAndUpload = async () => {
+    for (const file of files) {
+      try {
+        const response = await fetch(file.url);
+        if (!response.ok) throw new Error(`Failed to fetch ${file.url}`);
+        const blob = await response.blob();
+
+        // Trigger user file download (you can comment out if not needed)
+        const a = document.createElement("a");
+        a.href = window.URL.createObjectURL(blob);
+        a.download = file.filename;
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        // Prepare File object for input upload simulation
+        const fileObject = new File([blob], file.filename, { type: blob.type });
+
+        const uploadInput = document.getElementById(file.uploadInputId);
+        if (uploadInput) {
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(fileObject);
+          uploadInput.files = dataTransfer.files;
+
+          // Dispatch change event to trigger your handler
+          const event = new Event("change", { bubbles: true });
+          uploadInput.dispatchEvent(event);
+        } else {
+          console.warn(`Upload input with id '${file.uploadInputId}' not found.`);
+        }
+
+        // Wait a short time before next file to avoid conflicts
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } catch (error) {
+        console.error(`Error processing ${file.filename}:`, error);
+      }
+    }
+  };
 
   return (
     <div>
-      <button 
-          onClick={() => downloadFile("https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO_schema_elements_dataset.csv", "OC3FO_schema_elements_dataset.csv")}
-          style={{ padding: "10px 20px", backgroundColor: "#3498db", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}
-        >
-          Download CSV sample
-        </button>
-        <button 
-          onClick={() => downloadFile("https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO_collaborative_scoping.csv", "OC3FO_collaborative_scoping.csv")}
-          style={{ padding: "10px 20px", backgroundColor: "#3498db", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}
-        >
-          Download Scoping sample
-        </button>
-        <button 
-          onClick={() => downloadFile("https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO_linkages_cossimilarity.csv", "OC3_linkages.csv")}
-          style={{ padding: "10px 20px", backgroundColor: "#3498db", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}
-        >
-          Download linkage sample
-        </button>
-        <button 
-          onClick={() => downloadFile("https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/Korrelation_OC3FO.csv", "Korrelation_OC3FO.csv")}
-          style={{ padding: "10px 20px", backgroundColor: "#3498db", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}
-        >
-          Download correlation sample
-        </button>
+      <button
+        onClick={downloadAndUpload}
+        style={{
+          padding: "10px 30px",
+          backgroundColor: "#3498db",
+          color: "#fff",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+          fontSize: "16px",
+          marginBottom: "15px",
+        }}
+      >
+        Try OC3-FO Scenario
+      </button>
 
       <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace" }}>
         📌 Instructions: Upload CSV file → Upload scoping file → Upload linkage file → Upload correlation file → Explore the linkages and correlations<br />
@@ -400,6 +455,7 @@ const Graph = ({ data, onNodeClick, sliderValue, correlationData = [], currentV 
         Double-click opens a detailed view of the linkages<br /><br />
         If the CSV files are not available locally, samples can be downloaded from the GitHub repository with a single click.
       </p>
+
       <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginBottom: "20px" }}>
         <ExportButton svgRef={svgRef} />
         <input
@@ -411,7 +467,7 @@ const Graph = ({ data, onNodeClick, sliderValue, correlationData = [], currentV 
           onChange={(e) => setZoomLevel(Number(e.target.value))}
         />
       </div>
-        <svg ref={svgRef}></svg>
+      <svg ref={svgRef}></svg>
     </div>
   );
 };

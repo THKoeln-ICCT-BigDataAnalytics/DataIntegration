@@ -1,0 +1,5 @@
+"store_id","manager_staff_id","address_id"
+"tinyint unsigned","tinyint unsigned","smallint unsigned"
+"NOT NULL PRIMARY KEY auto_increment","NOT NULL UNIQUE FOREIGN KEY REFERENCES staff(staff_id)","NOT NULL INDEX FOREIGN KEY REFERENCES address(address_id)"
+"1","1","1"
+"2","2","2"

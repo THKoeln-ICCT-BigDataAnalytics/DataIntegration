@@ -66,8 +66,8 @@ const LinkDataButton = ({ onDataLoaded }) => {
 
   return (
     <div>
-      <h2>Upload Link-Data-CSV </h2>
-      <input type="file" accept=".csv" onChange={handleFileUpload} />
+      <h2>Upload Linkages</h2>
+      <input id="upload_linkages" type="file" accept=".csv" onChange={handleFileUpload} />
     </div>
   );
 };

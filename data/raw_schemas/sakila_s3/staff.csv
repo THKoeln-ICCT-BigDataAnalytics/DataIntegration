@@ -1,0 +1,5 @@
+"staff_id","first_name","last_name","address_id","email","store_id","active","username","password"
+"tinyint unsigned","varchar(45)","varchar(45)","smallint unsigned","varchar(50)","tinyint unsigned","tinyint(1)","varchar(16)","varchar(40)"
+"NOT NULL PRIMARY KEY auto_increment","NOT NULL","NOT NULL","NOT NULL INDEX FOREIGN KEY REFERENCES address(address_id)","NULL","NOT NULL INDEX FOREIGN KEY REFERENCES store(store_id)","NOT NULL","NOT NULL","NULL"
+"1","Mike","Hillyer","3","Mike.Hillyer@sakilastaff.com","1","1","Mike","8cb2237d0679ca88db6464eac60da96345513964"
+"2","Jon","Stephens","4","Jon.Stephens@sakilastaff.com","2","1","Jon",""

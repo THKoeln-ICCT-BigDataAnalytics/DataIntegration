@@ -45,8 +45,8 @@ const CorrelationLinkButton = ({ onDataLoaded }) => {
 
   return (
     <div>
-      <h2>Upload Correlation-CSV</h2>
-      <input type="file" accept=".csv" onChange={handleFileUpload} />
+      <h2>Upload Correlation</h2>
+      <input id="upload_correlation" type="file" accept=".csv" onChange={handleFileUpload} />
 
       {csvRows.length > 0 && (
         <div style={{ marginTop: "10px" }}>
