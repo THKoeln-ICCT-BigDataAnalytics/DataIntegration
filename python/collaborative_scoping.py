@@ -216,5 +216,5 @@ if __name__ == "__main__":
 
     print(process[1] + "\n" + process_line)
     df_graph_collaborative_scoping = collaborative_scoping_track(entities, df_graph)
-    df_graph_collaborative_scoping.to_csv(directory_path+"/schema_graph_collaborative_scoping.csv", index=False)
+    df_graph_collaborative_scoping.to_csv(directory_path+"/collaborative_scoping.csv", index=False)
     print("Successfully completion." + "\n" + process_line)
