@@ -40,3 +40,14 @@
 .read-the-docs {
   color: #888;
 }
+
+table {
+  border-collapse: collapse; /* Collapse borders into single lines */
+  width: 100%; /* Optional, make table full width */
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center; /* Optional centering */
+}

@@ -148,6 +148,12 @@ function App() {
     </p>
   );
 
+  const cellStyle = {
+    border: "1px solid #ccc",
+    padding: "6px",
+    textAlign: "center"
+  };
+
   return (
   <div style={{ textAlign: "center", padding: "20px", minHeight: "100vh", background: "#f8f9fa" }}>
     <h2>Collaborative Scoping in Action</h2>
@@ -170,51 +176,73 @@ function App() {
           background: "#ecf0f1", 
           borderRadius: 9, 
           boxShadow: "0 2px 8px rgba(44,62,80,.06)",
-          textAlign: "center"
+          textAlign: "center",
         }}
       >
         <h3 style={{ marginBottom: "0.5rem" }}>
-          Load Existing Schema Matching Scenarios
+          Load Schema Matching Scenarios
         </h3>
 
-        {/* Wrap buttons in a block div so they appear on their own line */}
-        <div style={{ marginTop: "0.5rem" }}>
-          <button 
-            style={{
-              padding: "10px 30px",
-              backgroundColor: "#3498db",
-              color: "#fff",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-              fontSize: "15px",
-              marginRight: "18px"
-            }}
-            onClick={() => downloadAndUpload(files_OC3FO)}
-          >
-            OC3-FO
-          </button>
-          <button 
-            style={{
-              padding: "10px 30px",
-              backgroundColor: "#27ae60",
-              color: "#fff",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-              fontSize: "15px"
-            }}
-            onClick={() => downloadAndUpload(files_IMDbSakilaMovieLens)}
-          >
-            IMDbSakilaMovieLens
-          </button>
-        </div>
-        <h3>
-          Load your own Schema Matching Scenario
-        </h3>
-        {/* Instructions:  */}
-        📌 Automatically import your own schemas (as .csv dump) with the Python Wizard.
+        <table style={{ 
+          borderSpacing: "0 8px", 
+          marginTop: "10px", 
+          marginLeft: "auto",
+          marginRight: "auto",
+          color: "#34495e",
+          textAlign: "center",
+          borderCollapse: "collapse",  // collapse borders for clean grid
+          width:"90%",
+          border: "1px solid #ccc",
+          fontSize: "12px",
+         }}>
 
+          <thead>
+            <tr>
+              <th style={cellStyle}> Domain </th>
+              <th style={cellStyle}> Related Schema</th>
+              <th style={cellStyle}> + Unrelated Schema <br></br><a href="https://github.com/jolpica/jolpica-f1" target="_blank">Formula-One (jolpica-f1)</a> </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style={cellStyle}> Orders-Customers: <a href="https://github.com/oracle-samples/db-sample-schemas" target="_blank">CO (Oracle)</a>, 
+                <a href="https://www.mysqltutorial.org/getting-started-with-mysql/mysql-sample-database/" target="_blank">classismodels (MySQL)</a>, <br></br>
+                <a href="https://developers.sap.com/tutorials/hxe-ua-dbfundamentals-sample-project..html" target="_blank">Sample Project (SAP HANA Academy)</a> </td>
+              <td style={cellStyle}> 
+                OC3 ☑</td>
+              <td style={cellStyle}> 
+                <button style={{padding: "10px 20px", backgroundColor: "#3498db", color: "#fff", cursor: "pointer", marginRight: "18px"}}
+                onClick={() => downloadAndUpload(files_OC3FO)}> OC3-FO ☑</button> 
+              </td>
+            </tr>
+            <tr>
+              <td style={cellStyle}>Movies: <a href="https://developer.imdb.com/non-commercial-datasets/" target="_blank">IMDb</a>, 
+                <a href="https://dev.mysql.com/doc/sakila/en/sakila-installation.html" target="_blank">Sakila (MySQL)</a>,  
+                <a href="https://grouplens.org/datasets/movielens/" target="_blank">MovieLens</a> </td>
+              <td style={cellStyle}> 
+                <button style={{padding: "10px 20px", backgroundColor: "#27ae60", color: "#fff", cursor: "pointer", marginRight: "18px"}} 
+                onClick={() => downloadAndUpload(files_IMDbSakilaMovieLens)}> IMDbSakilaMovieLens ☑</button>
+              </td>
+              <td style={cellStyle}> 
+                IMDbSakilaMovieLens-FO ☑
+              </td>
+            </tr>
+            <tr>
+              <td style={cellStyle}>Import your own Schemas</td>
+              <td style={cellStyle}>Schema Import Python Wizard <br></br>(Automated via .csv dumps)
+              </td>
+              <td style={cellStyle}> 
+                
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+        
+        <span style={{ fontSize: "12px", color: "#555" }}>
+          ☑ Downloads and auto-uploads schema_graph.csv, collaborative_scoping.csv, correlation.csv, and linkages.csv.
+          </span>
+        
       </div>
 
       <div 
