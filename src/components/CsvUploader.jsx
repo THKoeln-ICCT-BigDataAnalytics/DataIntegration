@@ -74,10 +74,10 @@ const CsvUploader = ({ onDataLoaded }) => {
   };
 
   return (
-    <div>
-      <h2>Upload Schema Graph</h2>
+    // <div>
+      // <h2>Schema Graph</h2>
       <input id="upload_schema_graph" type="file" accept=".csv" onChange={handleFileUpload} />
-    </div>
+    // </div>
   );
 };
 

@@ -3,8 +3,8 @@ import CsvUploader from "./components/CsvUploader";
 import Graph from "./components/Graph";
 import TestComponent from "./components/TestComponent";
 import ValidityCheckerButton from "./components/ValidityCheckerButton";
-import LinkDataButton from "./components/LinkDataButton";
 import CorrelationLinkButton from "./components/CorrelationLinkButton"; 
+import LinkDataButton from "./components/LinkDataButton";
 import VSelector from "./components/VSelector";
 import LinkDataManager from "./components/LinkDataManager";
 import SliderControl from "./components/SliderControl";
@@ -27,32 +27,17 @@ function App() {
 
   useEffect(() => {
     if (csvData.length > 0 && linkData.length > 0) {
-      console.log("Vor LinkDataManager - csvData:", csvData);
       const manager = new LinkDataManager(csvData, linkData);
       const newCsvData = manager.updateCsvData();
-      console.log("Nach LinkDataManager - newCsvData:", newCsvData);
-
       setCsvData([...newCsvData]);
-      console.log("setCsvData aufgerufen mit:", [...newCsvData]);
-
       if (selectedNode) {
         const updatedNode = findNodeById(newCsvData, selectedNode.id);
         if (updatedNode) {
           setSelectedNode(updatedNode);
-          console.log("SelectedNode aktualisiert:", updatedNode);
-        } else {
-          console.warn("SelectedNode nicht in newCsvData gefunden:", selectedNode.id);
         }
       }
     }
   }, [linkData]);
-
-  useEffect(() => {
-    console.log("csvData nach State-Update:", csvData);
-    if (selectedNode) {
-      console.log("Aktueller selectedNode nach csvData-Update:", selectedNode);
-    }
-  }, [csvData]);
 
   const findNodeById = (nodes, id) => {
     for (const node of nodes) {
@@ -65,63 +50,247 @@ function App() {
     return null;
   };
 
-  useEffect(() => {
-    console.log("Aktualisierte Validity Data:", validityData);
-  }, [validityData]);
+    // Files info for download + auto upload
+  const files_OC3FO = [
+    {
+      url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/schema_graph.csv",
+      filename: "OC3FO_schema_graph.csv",
+      uploadInputId: "upload_schema_graph",
+    },
+    {
+      url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/collaborative_scoping.csv",
+      filename: "OC3FO_collaborative_scoping.csv",
+      uploadInputId: "upload_collaborative_scoping",
+    },
+    {
+      url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/correlation.csv",
+      filename: "OC3FO_correlation.csv",
+      uploadInputId: "upload_correlation",
+    },
+    {
+      url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/linkages.csv",
+      filename: "OC3_linkages.csv",
+      uploadInputId: "upload_linkages",
+    },
+    
+  ];
 
-  useEffect(() => {
-    console.log("Aktualisierte Link Data:", linkData);
-  }, [linkData]);
+  const files_IMDbSakilaMovieLens = [
+    {
+      url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/IMDbSakilaMovieLens/schema_graph.csv",
+      filename: "IMDbSakilaMovieLens_schema_graph.csv",
+      uploadInputId: "upload_schema_graph",
+    },
+    {
+      url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/IMDbSakilaMovieLens/collaborative_scoping.csv",
+      filename: "IMDbSakilaMovieLens_collaborative_scoping.csv",
+      uploadInputId: "upload_collaborative_scoping",
+    },
+    // {
+    //   url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/correlation.csv",
+    //   filename: "IMDbSakilaMovieLens_correlation.csv",
+    //   uploadInputId: "upload_correlation",
+    // },
+    // {
+    //   url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/linkages.csv",
+    //   filename: "IMDbSakilaMovieLens_linkages.csv",
+    //   uploadInputId: "upload_linkages",
+    // },
+    
+  ];
+
+  // Async function to download files and trigger upload inputs
+  const downloadAndUpload= async (files) => {
+    for (const file of files) {
+      try {
+        const response = await fetch(file.url);
+        if (!response.ok) throw new Error(`Failed to fetch ${file.url}`);
+        const blob = await response.blob();
+
+        // Trigger user file download (you can comment out if not needed)
+        const a = document.createElement("a");
+        a.href = window.URL.createObjectURL(blob);
+        a.download = file.filename;
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        // Prepare File object for input upload simulation
+        const fileObject = new File([blob], file.filename, { type: blob.type });
+
+        const uploadInput = document.getElementById(file.uploadInputId);
+        if (uploadInput) {
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(fileObject);
+          uploadInput.files = dataTransfer.files;
+
+          // Dispatch change event to trigger your handler
+          const event = new Event("change", { bubbles: true });
+          uploadInput.dispatchEvent(event);
+        } else {
+          console.warn(`Upload input with id '${file.uploadInputId}' not found.`);
+        }
+
+        // Wait a short time before next file to avoid conflicts
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } catch (error) {
+        console.error(`Error processing ${file.filename}:`, error);
+      }
+    }
+  };
+
+  const instructionText = (
+    <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", maxWidth: 1800, margin: "15px auto" }}>
+      ⚙️ Features: Zoom, Drag & Drop, Export, interactive nodes.<br />
+      ℹ️ Note: Shift + click on a table opens a detailed view of the connected objects.<br />
+      {/* Double-click opens a detailed view of the linkages<br /><br /> */}
+    </p>
+  );
 
   return (
-    
-    <div style={{ textAlign: "center", padding: "20px" }}>
-      <h1>Data Integration Web Tool</h1>
-      
-      {/* Container for buttons with Flexbox to display them side by side */}
-      <div style={{ 
-        display: "flex", 
-        justifyContent: "center", 
-        gap: "10px", 
-        marginBottom: "20px" 
-      }}>
-        <CsvUploader onDataLoaded={setCsvData} />
-        <ValidityCheckerButton 
-          onDataLoaded={(data) => {
-            console.log("Empfangene Validity Data vor dem Speichern:", data);
-            if (data.length > 0) {
-              setValidityData(data);
-              console.log("Validity Data erfolgreich gespeichert.");
-            } else {
-              console.warn("Empfangene Validity Data ist leer!");
-            }
-          }} 
-        />
-        <LinkDataButton 
-          onDataLoaded={(data) => {
-            console.log("Empfangene Link Data vor dem Speichern:", data);
-            if (data.length > 0) {
-              setLinkData(data);
-              console.log("Link Data erfolgreich gespeichert.");
-            } else {
-              console.warn("Empfangene Link Data ist leer!");
-            }
-          }} 
-        />
-        <CorrelationLinkButton 
-         onDataLoaded={(data) => {
-          console.log("Empfangene Correlation Data vor dem Speichern:", data);
-          if (data.length > 0) {
-          setCorrelationData(data);
-          console.log("Correlation Data erfolgreich gespeichert.");
-          } else {
-            console.warn("Empfangene Correlation Data ist leer!");
-          }
-        }}   
-      />
+  <div style={{ textAlign: "center", padding: "20px", minHeight: "100vh", background: "#f8f9fa" }}>
+    <h2>Collaborative Scoping in Action</h2>
+
+    {/* Wrap both scenario divs in a flex container */}
+    <div style={{ 
+      display: "flex", 
+      justifyContent: "space-around", 
+      alignItems: "flex-start", 
+      gap: "20px", 
+      width: "100%", 
+      maxWidth: "1800px", 
+      margin: "20px auto" 
+    }}>
+      <div 
+        id="custom_schema_matching_scenarios"
+        style={{ 
+          flex: 1,
+          padding: "12px 20px", 
+          background: "#ecf0f1", 
+          borderRadius: 9, 
+          boxShadow: "0 2px 8px rgba(44,62,80,.06)",
+          textAlign: "center"
+        }}
+      >
+        <h3 style={{ marginBottom: "0.5rem" }}>
+          Load Existing Schema Matching Scenarios
+        </h3>
+
+        {/* Wrap buttons in a block div so they appear on their own line */}
+        <div style={{ marginTop: "0.5rem" }}>
+          <button 
+            style={{
+              padding: "10px 30px",
+              backgroundColor: "#3498db",
+              color: "#fff",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+              fontSize: "15px",
+              marginRight: "18px"
+            }}
+            onClick={() => downloadAndUpload(files_OC3FO)}
+          >
+            OC3-FO
+          </button>
+          <button 
+            style={{
+              padding: "10px 30px",
+              backgroundColor: "#27ae60",
+              color: "#fff",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+              fontSize: "15px"
+            }}
+            onClick={() => downloadAndUpload(files_IMDbSakilaMovieLens)}
+          >
+            IMDbSakilaMovieLens
+          </button>
+        </div>
+        <h3>
+          Load your own Schema Matching Scenario
+        </h3>
+        {/* Instructions:  */}
+        📌 Automatically import your own schemas (as .csv dump) with the Python Wizard.
 
       </div>
 
+      <div 
+        id="individual_schema_matching_scenarios" 
+        style={{ 
+          flex: 1,
+          padding: "12px 20px", 
+          background: "#ecf0f1", 
+          borderRadius: 9, 
+          boxShadow: "0 2px 8px rgba(44,62,80,.06)",
+          textAlign: "center",
+          color: "#34495e"
+        }}>
+        
+        <h3>
+          Visualize your Schema Graph, Collaborative Scoping, Correlation, and Linkages.
+        </h3>
+
+        
+        <table style={{ 
+          borderSpacing: "0 8px", 
+          marginTop: "10px", 
+          marginLeft: "auto",
+          color: "#34495e",
+          fontSize: "12px"
+         }}>
+          <tbody>
+            <tr>
+              <td style={{ fontWeight: "bold", paddingRight: "12px" }}>Schema Graph</td>
+              <td><CsvUploader onDataLoaded={setCsvData} /></td>
+            </tr>
+            <tr>
+              <td style={{ fontWeight: "bold", paddingRight: "12px" }}>Collaborative Scoping</td>
+              <td>
+                <ValidityCheckerButton 
+                  onDataLoaded={data => data.length > 0 && setValidityData(data)} 
+                />
+              </td>
+              <td>
+                <VSelector 
+                  validityData={validityData} 
+                  graphNodes={csvData} 
+                  vValue={vValue} 
+                  setVValue={setVValue} 
+                  refreshGraph={refreshGraph}
+                />
+              </td>
+            </tr>
+            <tr>
+              <td style={{ fontWeight: "bold", paddingRight: "12px" }}>Correlation</td>
+              <td>
+                <CorrelationLinkButton onDataLoaded={data => data.length > 0 && setCorrelationData(data)} />
+              </td>
+              <td>
+                <CorrelationLinkButton.Buttons/>
+              </td>
+            </tr>
+            <tr>
+              <td style={{ fontWeight: "bold", paddingRight: "12px" }}>Linkages</td>
+              <td>
+                <LinkDataButton 
+                  onDataLoaded={data => data.length > 0 && setLinkData(data)} 
+                />
+              </td>
+              <td>
+                <SliderControl value={sliderValue} setValue={setSliderValue} />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+
+
+      {/* Main Graph and controls */}
+            
       <Graph 
         key={graphKey} 
         data={csvData} 
@@ -130,17 +299,11 @@ function App() {
         correlationData={correlationData}
         currentV={vValue}
       />
+
+      {instructionText}
       
-      <VSelector 
-        validityData={validityData} 
-        graphNodes={csvData} 
-        vValue={vValue} 
-        setVValue={setVValue} 
-        refreshGraph={refreshGraph}
-      />
 
-      <SliderControl value={sliderValue} setValue={setSliderValue} />
-
+      {/* Clicked Node Information */}
       {selectedNode && (
         <div>
           <button onClick={() => setShowTest(!showTest)}>

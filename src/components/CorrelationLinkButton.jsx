@@ -9,14 +9,11 @@ const CorrelationLinkButton = ({ onDataLoaded }) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Datei mit PapaParse einlesen und parsen
-    Papa.parse(file, {
-      header: true,          // Erste Zeile als Header verwenden
-      skipEmptyLines: true,  // Leere Zeilen überspringen
-      complete: (result) => {
-        console.log("CSV vollständig geparst:", result.data);
 
-        // Ergebnis im State speichern für weitere Verarbeitung
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (result) => {
         setCsvRows(result.data);
       }
     });
@@ -25,74 +22,46 @@ const CorrelationLinkButton = ({ onDataLoaded }) => {
   const handleTypeSelect = (type) => {
     if (!csvRows.length) return;
 
-    // CSV-Zeilen in gewünschtes Format umwandeln
     const convertedData = csvRows.map(row => ({
-      // "_agree" entfernen, damit es zu schema-Namen passt
       schema_a: (row.source || "").replace("_agree", ""),
       schema_b: (row.target || "").replace("_agree", ""),
       v: Number(row.v),
-      correlation_value: parseFloat(row[type]) // Zahl statt String
+      correlation_value: parseFloat(row[type])
     }));
 
-    console.log(`Konvertierte Korrelationen für "${type}":`, convertedData);
-
-    // Aktiven Button speichern, um UI hervorzuheben
     setActiveType(type);
-
-    // Verarbeitete Daten zurückgeben
-    onDataLoaded(convertedData); 
+    onDataLoaded(convertedData);
   };
+
+  // Render only buttons as a separate component
+  const Buttons = () => {
+     if (csvRows.length === 0) return null;
+
+    const buttonStyle = (type) => ({
+      backgroundColor: activeType === type ? "#9b59b6" : "#3498db",
+      color: "#fff",
+      padding: "5px 10px",
+      marginRight: "5px",
+      border: "none",
+      borderRadius: "4px",
+      cursor: "pointer"
+    });
+
+    return (
+      <div style={{ marginTop: "10px" }}>
+        <button onClick={() => handleTypeSelect("all")} style={buttonStyle("all")}>All</button>
+        <button onClick={() => handleTypeSelect("all_true")} style={buttonStyle("all_true")}>Linkable True</button>
+        <button onClick={() => handleTypeSelect("all_false")} style={buttonStyle("all_false")}>Linkable False</button>
+       </div>
+    );
+  };
+
+  
+  CorrelationLinkButton.Buttons = Buttons;
 
   return (
     <div>
-      <h2>Upload Correlation</h2>
       <input id="upload_correlation" type="file" accept=".csv" onChange={handleFileUpload} />
-
-      {csvRows.length > 0 && (
-        <div style={{ marginTop: "10px" }}>
-          <button
-            onClick={() => handleTypeSelect("all")}
-            style={{
-              backgroundColor: activeType === "all" ? "#9b59b6" : "#3498db",
-              color: "#fff",
-              padding: "5px 10px",
-              marginRight: "5px",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer"
-            }}
-          >
-            All
-          </button>
-          <button
-            onClick={() => handleTypeSelect("all_true")}
-            style={{
-              backgroundColor: activeType === "all_true" ? "#9b59b6" : "#3498db",
-              color: "#fff",
-              padding: "5px 10px",
-              marginRight: "5px",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer"
-            }}
-          >
-            All True
-          </button>
-          <button
-            onClick={() => handleTypeSelect("all_false")}
-            style={{
-              backgroundColor: activeType === "all_false" ? "#9b59b6" : "#3498db",
-              color: "#fff",
-              padding: "5px 10px",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer"
-            }}
-          >
-            All False
-          </button>
-        </div>
-      )}
     </div>
   );
 };

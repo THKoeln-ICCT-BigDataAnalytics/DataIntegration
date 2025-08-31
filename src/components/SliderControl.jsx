@@ -6,8 +6,14 @@ function SliderControl({ value, setValue }) {
   };
 
   return (
-    <div style={{ margin: "20px 0" }}>
-      <label htmlFor="slider">Similarity Threshold(0 to 1): </label>
+    <div id="sim_selector" 
+          style={{
+          display: "flex",
+          alignItems: "center",  // vertically center items
+          justifyContent: "flex-end", // Align items to the right horizontally
+          gap: "5px"            // optional spacing between items
+        }}>
+      <label htmlFor="slider"><i>Similarity Threshold</i></label>
       <input
         type="range"
         id="slider"
@@ -17,7 +23,7 @@ function SliderControl({ value, setValue }) {
         value={value}
         onChange={handleChange}
       />
-      <span style={{ marginLeft: "10px" }}>{value.toFixed(2)}</span>
+      <span>{value.toFixed(2)}</span>
     </div>
   );
 }

@@ -45,10 +45,10 @@ const ValidityCheckerButton = ({ onDataLoaded }) => {
   };
 
   return (
-    <div>
-      <h2>Upload Collaborative Scoping</h2>
+    // <div>
+      // <h2>Collaborative Scoping</h2>
       <input id="upload_collaborative_scoping" type="file" accept=".csv" onChange={handleFileUpload} />
-    </div>
+    // </div>
   );
 };
 

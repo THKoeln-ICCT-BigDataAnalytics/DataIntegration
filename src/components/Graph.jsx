@@ -259,39 +259,39 @@ const Graph = ({ data, onNodeClick, sliderValue, correlationData = [], currentV 
         if (d.depth === 0) {
           return 30;
         }
-        if (d.data.type === "schema" || d.data.type === "table") {
+        if (d.data.type === "source" || d.data.type === "schema" || d.data.type === "table") {
           return 20;
         }
         return 10;
       })
       .attr("fill", d => getColorForSchema(d.data.schema));
 
-    nodeGroups.filter(d => d.data.type === "schema")
+    nodeGroups.filter(d => (d.data.type === "source") || (d.data.type === "schema"))
       .append("image")
       .attr("xlink:href", databaseIcon)
-      .attr("width", 30)
-      .attr("height", 30)
-      .attr("x", -15)
-      .attr("y", -15);
+      .attr("width", 50)
+      .attr("height", 50)
+      .attr("x", -25)
+      .attr("y", -25);
 
     nodeGroups.filter(d => d.data.type === "table") 
       .append("image")
       .attr("xlink:href", tableIcon)
-      .attr("width", 30)
-      .attr("height", 30)
-      .attr("x", -15)
-      .attr("y", -15);
+      .attr("width", 40)
+      .attr("height", 40)
+      .attr("x", -20)
+      .attr("y", -20);
 
-    nodeGroups.filter(d => d.data.type !== "schema")
+    nodeGroups.filter(d => d.data.type !== (d.data.type === "source") || (d.data.type === "schema"))
       .append("circle")
       .attr("r", 8)
       .attr("fill", d => getColorForSchema(d.data.schema));
 
     const agreeMarkers = [
-      { key: "OC_ORACLE_agree", color: "rgb(0, 123, 255)", offset: -15 },
+      { key: "OC_ORACLE_agree", color: "rgb(255, 215, 0)", offset: -15 },
       { key: "OC_MYSQL_agree", color: "rgb(255, 87, 51)", offset: -10 },
-      { key: "OC_SAP_agree", color: "rgb(255, 215, 0)", offset: -5 },
-      { key: "FORMULA_agree", color: "rgb(75, 181, 67)", offset: 0 }
+      { key: "OC_SAP_agree", color: "rgb(75, 181, 67)", offset: -5 },
+      { key: "FORMULA_agree", color: "rgb(0, 123, 255)", offset: 0 }
     ];
 
     agreeMarkers.forEach(marker => {
@@ -365,99 +365,9 @@ const Graph = ({ data, onNodeClick, sliderValue, correlationData = [], currentV 
   }, [correlationData, currentV]); 
 
   
-    // Files info for download + auto upload
-  const files = [
-    {
-      url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/schema_graph.csv",
-      filename: "OC3FO_schema_graph.csv",
-      uploadInputId: "upload_schema_graph",
-    },
-    {
-      url: "https://github.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/raw/refs/heads/main/data/OC3FO/collaborative_scoping.csv",
-      filename: "OC3FO_collaborative_scoping.csv",
-      uploadInputId: "upload_collaborative_scoping",
-    },
-    {
-      url: "https://github.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/raw/refs/heads/main/data/OC3FO/linkages.csv",
-      filename: "OC3_linkages.csv",
-      uploadInputId: "upload_linkages",
-    },
-    {
-      url: "https://github.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/raw/refs/heads/main/data/OC3FO/correlation.csv",
-      filename: "OC3FO_correlation.csv",
-      uploadInputId: "upload_correlation",
-    },
-  ];
-
-  // Async function to download files and trigger upload inputs
-  const downloadAndUpload = async () => {
-    for (const file of files) {
-      try {
-        const response = await fetch(file.url);
-        if (!response.ok) throw new Error(`Failed to fetch ${file.url}`);
-        const blob = await response.blob();
-
-        // Trigger user file download (you can comment out if not needed)
-        const a = document.createElement("a");
-        a.href = window.URL.createObjectURL(blob);
-        a.download = file.filename;
-        a.style.display = "none";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-
-        // Prepare File object for input upload simulation
-        const fileObject = new File([blob], file.filename, { type: blob.type });
-
-        const uploadInput = document.getElementById(file.uploadInputId);
-        if (uploadInput) {
-          const dataTransfer = new DataTransfer();
-          dataTransfer.items.add(fileObject);
-          uploadInput.files = dataTransfer.files;
-
-          // Dispatch change event to trigger your handler
-          const event = new Event("change", { bubbles: true });
-          uploadInput.dispatchEvent(event);
-        } else {
-          console.warn(`Upload input with id '${file.uploadInputId}' not found.`);
-        }
-
-        // Wait a short time before next file to avoid conflicts
-        await new Promise(resolve => setTimeout(resolve, 500));
-      } catch (error) {
-        console.error(`Error processing ${file.filename}:`, error);
-      }
-    }
-  };
-
   return (
     <div>
-      <button
-        onClick={downloadAndUpload}
-        style={{
-          padding: "10px 30px",
-          backgroundColor: "#3498db",
-          color: "#fff",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-          fontSize: "16px",
-          marginBottom: "15px",
-        }}
-      >
-        Try OC3-FO Scenario
-      </button>
-
-      <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace" }}>
-        📌 Instructions: Upload CSV file → Upload scoping file → Upload linkage file → Upload correlation file → Explore the linkages and correlations<br />
-        ⚙️ Features: Zoom, Drag & Drop, Export, interactive nodes.<br />
-        ℹ️ Note: Shift + click on a table opens a detailed view of the connected objects. <br />
-        Double-click opens a detailed view of the linkages<br /><br />
-        If the CSV files are not available locally, samples can be downloaded from the GitHub repository with a single click.
-      </p>
-
-      <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginBottom: "20px" }}>
-        <ExportButton svgRef={svgRef} />
+      {/* <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginBottom: "20px" }}>
         <input
           type="range"
           min="0.1"
@@ -466,8 +376,9 @@ const Graph = ({ data, onNodeClick, sliderValue, correlationData = [], currentV 
           value={zoomLevel}
           onChange={(e) => setZoomLevel(Number(e.target.value))}
         />
-      </div>
+      </div> */}
       <svg ref={svgRef}></svg>
+      <ExportButton svgRef={svgRef} />
     </div>
   );
 };

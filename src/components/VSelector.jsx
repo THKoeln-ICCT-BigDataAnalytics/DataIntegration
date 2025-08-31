@@ -63,19 +63,27 @@ const VSelector = ({ vValue, setVValue, validityData, graphNodes = [], refreshGr
   };
 
   return (
-    <div style={{ margin: "20px" }}>
-      <label htmlFor="vRange">Choose V Value for Scoping: {vValue}</label>
+    <div id="v_selector"style={{
+          display: "flex",
+          alignItems: "center",   // vertically center items
+          justifyContent: "flex-end", // Align items to the right horizontally
+          gap: "5px"            // optional spacing between items
+        }}>
+      <label htmlFor="vRange"><i>Model Variance</i></label>
       <input
-        id="vRange"
         type="range"
+        id="vRange"
         min="1"
         max="99"
         value={vValue}
         onChange={(e) => handleVChange(Number(e.target.value))}
-        style={{ width: "300px", marginLeft: "10px", cursor: "pointer" }}
       />
-    </div>
+      <span>{(vValue/100).toFixed(2)}</span> 
+    </div> 
   );
 };
 
 export default VSelector;
+
+
+
