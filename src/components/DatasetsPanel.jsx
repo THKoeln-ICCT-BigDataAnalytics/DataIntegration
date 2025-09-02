@@ -9,17 +9,17 @@ import Button from 'react-bootstrap/Button';
     const files_OC3 = [
     {
       url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3/schema_graph.csv",
-      filename: "OC3FO_schema_graph.csv",
+      filename: "OC3_schema_graph.csv",
       uploadInputId: "upload_schema_graph",
     },
     {
       url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3/collaborative_scoping.csv",
-      filename: "OC3FO_collaborative_scoping.csv",
+      filename: "OC3_collaborative_scoping.csv",
       uploadInputId: "upload_collaborative_scoping",
     },
     // {
     //   url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/correlation.csv",
-    //   filename: "OC3FO_correlation.csv",
+    //   filename: "OC3_correlation.csv",
     //   uploadInputId: "upload_correlation",
     // },
     // {
@@ -57,22 +57,22 @@ import Button from 'react-bootstrap/Button';
   const files_ISM = [
     {
       url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/ISM/schema_graph.csv",
-      filename: "IMDbSakilaMovieLens_schema_graph.csv",
+      filename: "ISM_schema_graph.csv",
       uploadInputId: "upload_schema_graph",
     },
     {
       url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/ISM/collaborative_scoping.csv",
-      filename: "IMDbSakilaMovieLens_collaborative_scoping.csv",
+      filename: "ISM_collaborative_scoping.csv",
       uploadInputId: "upload_collaborative_scoping",
     },
     // {
     //   url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/correlation.csv",
-    //   filename: "IMDbSakilaMovieLens_correlation.csv",
+    //   filename: "ISM_correlation.csv",
     //   uploadInputId: "upload_correlation",
     // },
     // {
     //   url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/linkages.csv",
-    //   filename: "IMDbSakilaMovieLens_linkages.csv",
+    //   filename: "ISM_linkages.csv",
     //   uploadInputId: "upload_linkages",
     // },
     
@@ -81,22 +81,22 @@ import Button from 'react-bootstrap/Button';
   const files_ISMFO = [
     {
       url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/ISMFO/schema_graph.csv",
-      filename: "IMDbSakilaMovieLens_schema_graph.csv",
+      filename: "ISMFO_schema_graph.csv",
       uploadInputId: "upload_schema_graph",
     },
     {
       url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/ISMFO/collaborative_scoping.csv",
-      filename: "IMDbSakilaMovieLens_collaborative_scoping.csv",
+      filename: "ISMFO_collaborative_scoping.csv",
       uploadInputId: "upload_collaborative_scoping",
     },
     // {
     //   url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/correlation.csv",
-    //   filename: "IMDbSakilaMovieLens_correlation.csv",
+    //   filename: "ISMFO_correlation.csv",
     //   uploadInputId: "upload_correlation",
     // },
     // {
     //   url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/linkages.csv",
-    //   filename: "IMDbSakilaMovieLens_linkages.csv",
+    //   filename: "ISMFO_linkages.csv",
     //   uploadInputId: "upload_linkages",
     // },
     
