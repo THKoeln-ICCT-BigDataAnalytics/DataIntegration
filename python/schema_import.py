@@ -36,7 +36,7 @@ def build_schema_graph(directory_path, schema_folders=None, extract_metadata=Tru
     for source_name in schema_folders:
         source_id = "entity_" + str(next(id_iter_graph))
         df_graph.loc[len(df_graph)] = {
-            "id": source_id, "type": "source", "schema": source_name, "name": source_name
+            "id": source_id, "type": "schema", "schema": source_name, "name": source_name
         }
         
         source_path = os.path.join(directory_path, source_name)
@@ -106,7 +106,7 @@ def build_schema_graph(directory_path, schema_folders=None, extract_metadata=Tru
 
                 df_graph.loc[len(df_graph)] = {
                     "id":              "entity_" + str(next(id_iter_graph)),
-                    "type":            "column",
+                    "type":            "attribute",
                     "parent_id":       table_id,
                     "schema":          source_name,
                     "name":            column,
@@ -124,11 +124,11 @@ def build_schema_graph(directory_path, schema_folders=None, extract_metadata=Tru
 
 if __name__ == "__main__":
     directory_path = str(sys.argv[1]) #C:\Users\leona\Desktop\schemas 
-    # print(len(sys.argv))
-    # if len(sys.argv) > 1:
-    #     schema_folders = str(sys.argv[2]) #"['imdb', 'sakila', 'movielens']"
-    # else:
-    schema_folders = None
+    print(len(sys.argv))
+    if len(sys.argv) > 1:
+        schema_folders = str(sys.argv[2]) #"['imdb', 'sakila', 'movielens', ]"
+    else:
+        schema_folders = None
     
     process_line ="============================================================================================="
 
@@ -136,8 +136,8 @@ if __name__ == "__main__":
     df_graph, files = build_schema_graph(directory_path = directory_path, schema_folders=schema_folders) 
     df_graph.to_csv(directory_path+"/schema_graph.csv", index=False)
     print("Schema Graph Metadata:")
-    print("# Schemas: "+ str(len(df_graph[df_graph.type=="source"])))
+    print("# Schemas: "+ str(len(df_graph[df_graph.type=="schema"])))
     print("# Tables: "+ str(len(df_graph[df_graph.type=="table"])))
-    print("# Columns: "+ str(len(df_graph[df_graph.type=="column"])))
+    print("# Attributes: "+ str(len(df_graph[df_graph.type=="attribute"])))
     print("Path: " + directory_path + "/schema_graph.csv")
     print("Successfully completion." + "\n" + process_line)

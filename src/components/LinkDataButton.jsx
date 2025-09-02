@@ -1,5 +1,6 @@
 import React from "react";
 import Papa from "papaparse";
+import Form from 'react-bootstrap/Form';
 
 const LinkDataButton = ({ onDataLoaded }) => {
   const handleFileUpload = (event) => {
@@ -67,8 +68,14 @@ const LinkDataButton = ({ onDataLoaded }) => {
   return (
     // <div>
       // <h2>Linkages</h2>
-      <input id="upload_linkages" type="file" accept=".csv" onChange={handleFileUpload} />
+      // <input id="upload_linkages" type="file" accept=".csv" onChange={handleFileUpload} />
     // </div>
+
+    <div>
+      <Form.Group controlId="upload_linkages" className="mb-3">
+        <Form.Control type="file" onChange={handleFileUpload} size="sm"/>
+      </Form.Group>
+    </div>
   );
 };
 

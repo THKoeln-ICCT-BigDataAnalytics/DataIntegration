@@ -1,5 +1,7 @@
 import React from "react";
 import Papa from "papaparse";
+import Form from 'react-bootstrap/Form';
+
 //scoping
 const ValidityCheckerButton = ({ onDataLoaded }) => {
   const handleFileUpload = (event) => {
@@ -45,10 +47,11 @@ const ValidityCheckerButton = ({ onDataLoaded }) => {
   };
 
   return (
-    // <div>
-      // <h2>Collaborative Scoping</h2>
-      <input id="upload_collaborative_scoping" type="file" accept=".csv" onChange={handleFileUpload} />
-    // </div>
+    <div>
+      <Form.Group controlId="upload_collaborative_scoping" className="mb-3">
+        <Form.Control type="file" onChange={handleFileUpload} size="sm"/>
+      </Form.Group>
+    </div>
   );
 };
 

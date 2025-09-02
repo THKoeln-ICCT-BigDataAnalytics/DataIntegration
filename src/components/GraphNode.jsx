@@ -5,20 +5,25 @@ class GraphNode {
     this.parentId = parentId;
     this.children = [];
     this.schema = schema;
-    
+    this.type = "";
+    this.parent_id = "";
+    this.parent_name	= "";
+    this.datatype	= "";
+    this.description	= "";
+    this.constraints	= "";
+    this.instances	= "";
+    this.text_sequence	= "";
+    this.instance_sequence	= ""; 
+    this.dataframe = "";
+
     // Standardwerte für Attribute setzen
-    this.OC_ORACLE = 0;
-    this.OC_MYSQL = 0;
-    this.OC_SAP = 0;
-    this.FORMULA = 0;
-    this.OC_ORACLE_agree = 0;
-    this.OC_MYSQL_agree = 0;
-    this.OC_SAP_agree = 0;
-    this.FORMULA_agree = 0;
+    this.agreeFlags = {};
     this.overall_agreement = 0;
     this.predict_linkability = 0;
     this.confusion = 0;  // Korrigierter Wert
     this.v = 0;
+
+    // Linkages
     this.highestlink = 0;
     this.secondhighestlink = 0;
     this.thirdhighestlink = 0;
@@ -29,37 +34,16 @@ class GraphNode {
     this.children.push(childNode);
   }
 
-  setOCOracle(value) {
-    this.OC_ORACLE = value;
+  // Method to set agree flag dynamically
+  setAgreeFlag(flagKey, value) {
+    this.agreeFlags[flagKey] = value;
   }
 
-  setOCMySQL(value) {
-    this.OC_MYSQL = value;
+  // Method to get agree flag dynamically
+  getAgreeFlag(flagKey) {
+    return this.agreeFlags[flagKey] || 0;
   }
 
-  setOCSAP(value) {
-    this.OC_SAP = value;
-  }
-
-  setFormula(value) {
-    this.FORMULA = value;
-  }
-
-  setOCOracleAgree(value) {
-    this.OC_ORACLE_agree = value;
-  }
-
-  setOCMySQLAgree(value) {
-    this.OC_MYSQL_agree = value;
-  }
-
-  setOCSAPAgree(value) {
-    this.OC_SAP_agree = value;
-  }
-
-  setFormulaAgree(value) {
-    this.FORMULA_agree = value;
-  }
 
   setOverallAgreement(value) {
     this.overall_agreement = value;

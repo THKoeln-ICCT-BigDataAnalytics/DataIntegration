@@ -1,4 +1,5 @@
 import React from "react";
+import Button from 'react-bootstrap/Button';
 
 const ExportButton = ({ svgRef }) => {
   const exportAsPng = () => {
@@ -34,7 +35,8 @@ const ExportButton = ({ svgRef }) => {
     img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgString)));
   };
 
-  return <button onClick={exportAsPng}>Export as PNG</button>;
+  return <Button size="sm" onClick={exportAsPng} variant="secondary">Export as PNG </Button>;
 };
 
 export default ExportButton;
+

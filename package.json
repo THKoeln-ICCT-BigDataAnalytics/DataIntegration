@@ -13,10 +13,14 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "bootstrap": "^5.3.8",
+    "build": "^0.1.4",
     "d3": "^7.9.0",
     "gh-pages": "^6.3.0",
+    "npm": "^11.5.2",
     "papaparse": "^5.5.2",
     "react": "^19.0.0",
+    "react-bootstrap": "^2.10.10",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {

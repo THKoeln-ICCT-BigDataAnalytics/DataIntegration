@@ -6,8 +6,8 @@ import enableDrag from "./DragHandler";
 import databaseIcon from "../assets/database.svg";
 import tableIcon from "../assets/table.svg";
 
-const Graph = ({ data, onNodeClick, sliderValue, correlationData = [], currentV }) => {
-  const svgRef = useRef();
+const Graph = ({ svgRef, data, onNodeClick, sliderValue, correlationData = [], currentV }) => {
+  // const svgRef = useRef();
   const gRef = useRef();
   const nodesRef = useRef(null);
   const specialLinkGroupRef = useRef(null);
@@ -90,7 +90,6 @@ const Graph = ({ data, onNodeClick, sliderValue, correlationData = [], currentV 
 
   // Nur die Schema-Nodes aus allen vorhandenen Nodes herausfiltern
   const schemaNodes = nodesRef.current.filter(n => n.data.type === "schema");
-  console.log("SchemaNodes:", schemaNodes.map(n => n.data.schema));
 
   // Korrelationen auf die aktuelle Variante (v) einschränken
   const filteredCorrelations = correlationData.filter(
@@ -143,8 +142,8 @@ const Graph = ({ data, onNodeClick, sliderValue, correlationData = [], currentV 
       return;
     }
 
-    const width = window.innerWidth * 0.9;
-    const height = window.innerHeight * 0.8;
+    const width = window.innerWidth * 0.97;
+    const height = window.innerHeight * 0.70;
 
     const svg = d3.select(svgRef.current)
       .attr("width", width)
@@ -287,16 +286,20 @@ const Graph = ({ data, onNodeClick, sliderValue, correlationData = [], currentV 
       .attr("r", 8)
       .attr("fill", d => getColorForSchema(d.data.schema));
 
-    const agreeMarkers = [
-      { key: "OC_ORACLE_agree", color: "rgb(255, 215, 0)", offset: -15 },
-      { key: "OC_MYSQL_agree", color: "rgb(255, 87, 51)", offset: -10 },
-      { key: "OC_SAP_agree", color: "rgb(75, 181, 67)", offset: -5 },
-      { key: "FORMULA_agree", color: "rgb(0, 123, 255)", offset: 0 }
-    ];
+    // 1. Extract unique schemas from schemaNodes
+    const schemaNodes = nodesRef.current.filter(n => n.data.type === "schema");
+    const uniqueSchemas = Array.from(new Set(schemaNodes.map(n => n.data.schema)));
+
+      // 2. Generate agreeMarkers dynamically with color from schema
+    const agreeMarkers = uniqueSchemas.map((schemaName, i) => ({
+      key: `${schemaName}_agree`,
+      color: getColorForSchema(schemaName),
+      offset: -15 + i * 5  // adjust spacing as needed
+    }));
 
     agreeMarkers.forEach(marker => {
       const filteredNodes = nodeGroups.filter(d => {
-        const value = d.data[marker.key];
+        const value = d.data.agreeFlags ? d.data.agreeFlags[marker.key] : 0;
         return value === 1 || value === "1" || value === true;
       });
       filteredNodes
@@ -367,6 +370,13 @@ const Graph = ({ data, onNodeClick, sliderValue, correlationData = [], currentV 
   
   return (
     <div>
+      <svg ref={svgRef}></svg>
+    </div>
+  );
+};
+
+export default Graph;
+
       {/* <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginBottom: "20px" }}>
         <input
           type="range"
@@ -377,10 +387,3 @@ const Graph = ({ data, onNodeClick, sliderValue, correlationData = [], currentV 
           onChange={(e) => setZoomLevel(Number(e.target.value))}
         />
       </div> */}
-      <svg ref={svgRef}></svg>
-      <ExportButton svgRef={svgRef} />
-    </div>
-  );
-};
-
-export default Graph;

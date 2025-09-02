@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Papa from "papaparse";
+import Form from 'react-bootstrap/Form';
 
 const CorrelationLinkButton = ({ onDataLoaded }) => {
   const [csvRows, setCsvRows] = useState([]);
@@ -60,8 +61,13 @@ const CorrelationLinkButton = ({ onDataLoaded }) => {
   CorrelationLinkButton.Buttons = Buttons;
 
   return (
+    // <div>
+    //   <input id="upload_correlation" type="file" accept=".csv" onChange={handleFileUpload} />
+    // </div>
     <div>
-      <input id="upload_correlation" type="file" accept=".csv" onChange={handleFileUpload} />
+      <Form.Group controlId="upload_correlation" className="mb-3">
+        <Form.Control type="file" onChange={handleFileUpload} size="sm"/>
+      </Form.Group>
     </div>
   );
 };

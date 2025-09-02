@@ -29,15 +29,14 @@ const VSelector = ({ vValue, setVValue, validityData, graphNodes = [], refreshGr
         node.setConfusion(matchingData.confusion);
         node.setV(matchingData.v);
 
-        node.setOCOracle(matchingData.OC_ORACLE);
-        node.setOCMySQL(matchingData.OC_MYSQL);
-        node.setOCSAP(matchingData.OC_SAP);
-        node.setFormula(matchingData.FORMULA);
 
-        node.setOCOracleAgree(matchingData.OC_ORACLE_agree);
-        node.setOCMySQLAgree(matchingData.OC_MYSQL_agree);
-        node.setOCSAPAgree(matchingData.OC_SAP_agree);
-        node.setFormulaAgree(matchingData.FORMULA_agree);
+        // Dynamically assign agree flags
+        Object.keys(matchingData).forEach(key => {
+          if (key.endsWith('_agree')) {
+            const value = matchingData[key];
+            node.setAgreeFlag(key, value);
+          }
+        });
 
         // Debugging für aktualisierte Knoten
         console.log(`Node ${node.id} aktualisiert:`, matchingData);

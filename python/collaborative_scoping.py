@@ -57,7 +57,7 @@ def encode_signatures_from_df(df_graph, model_name='sentence-transformers/all-mp
     entities = []
     model = SentenceTransformer(model_name)
 
-    df_graph = df_graph[df_graph.type != "source"].reset_index(drop=True)
+    df_graph = df_graph[df_graph.type != "schema"].reset_index(drop=True)
         
     st = time.time()
     text_sequence = model.encode(df_graph[serialization].values)
@@ -86,13 +86,13 @@ def encode_signatures_from_df(df_graph, model_name='sentence-transformers/all-mp
 # ==============================================2. Linkability Assessment with Collaborative Scoping====================================================
 
 # Helper Functions
-def entity_collection_by_source(ce, source_name):
+def entity_collection_by_source(ce, schema_name):
     #returns all entities for matching source
-    return [entity for entity in ce if entity.schema == source_name]
+    return [entity for entity in ce if entity.schema == schema_name]
 
-def entity_collection_by_sources(ce, source_names):
+def entity_collection_by_sources(ce, schema_names):
     #returns all entities for matching sources
-    return [entity for entity in ce if entity.schema in source_names]
+    return [entity for entity in ce if entity.schema in schema_names]
 
 
 # PCA
@@ -184,13 +184,15 @@ def collaborative_scoping(signatures, df, model_degree_variance, threshold, agre
     return E_prime_agreed, df
 
 
-def collaborative_scoping_track(signatures, df, variant="text_sequence"):
+def collaborative_scoping_track(signatures, df_graph, variant="text_sequence"):
     p_list = np.arange(1,100,1)
     p_list =  [float("%.2f" % elem) for elem in p_list]
     v_list = list(reversed(p_list))
+    df_graph = df_graph[df_graph.type != "schema"].reset_index(drop=True)
+
     results = []
     for v in v_list: #[99.0, 25.0]:
-        df_performance = collaborative_scoping(signatures, df, v, "max", print_params=False, variant=variant)[1].copy()
+        df_performance = collaborative_scoping(signatures, df_graph, v, "max", print_params=False, variant=variant)[1].copy()
         results.append(df_performance)
     return pd.concat(results, ignore_index=True, sort=False)
 
@@ -200,17 +202,29 @@ if __name__ == "__main__":
     directory_path = str(sys.argv[1]) #C:\Users\leona\Documents\GitHub\DataIntegration\data\IMDbSakilaMovieLens
     
     
-    process = ["1. Schema Signature Encoding", "2. Linkability Assessment with Collaborative Scoping", "3. Correlation of Linkability Assessment", "4. Matching"]
+    process = ["1. Schema Signature Encoding", "2. Linkability Assessment with Collaborative Scoping", "3. Correlation of Linkability Assessment", "4. Linkages"]
     process_line ="============================================================================================="
 
-    print("Read " + directory_path+"/schema_graph.csv" + "\n" + process_line)
+    print(process_line +  "\n" + "Read " + directory_path+"/schema_graph.csv")
     df_graph = pd.read_csv(directory_path+"/schema_graph.csv")
-    print("Successfull!"+ "\n" + process_line)
+    print("Schema Graph Metadata:")
+    print("# Schemas: "+ str(len(df_graph[df_graph.type=="schema"])))
+    print("# Tables: "+ str(len(df_graph[df_graph.type=="table"])))
+    print("# Attributes: "+ str(len(df_graph[df_graph.type=="attribute"])))
+    print("Path: " + directory_path + "/schema_graph.csv")
+    print("Successfully completion." + "\n" + process_line)
     
     print(process[0] + "\n" + process_line)
+    df_graph['text_sequence'] = df_graph['text_sequence'].astype(str)
     print("Default: Including entity serialization (e.g., " + df_graph.loc[2].text_sequence +")")
-    instance_serialization = input("Optional: Include instance serialization (e.g., " + df_graph.loc[2].instance_sequence +")? (y/n): ")
-    instance_sequence = "instance_sequence" if instance_serialization.lower() == 'y' else None
+    
+    if "instance_sequence" in df_graph:
+        df_graph['instance_sequence'] = df_graph['instance_sequence'].astype(str)
+        instance_serialization = input("Optional: Include instance serialization (e.g., " + df_graph.loc[2].instance_sequence +")? (y/n): ")
+        instance_sequence = "instance_sequence" if instance_serialization.lower() == 'y' else None
+    else:
+        instance_sequence = None
+
     entities = encode_signatures_from_df(df_graph, serialization="text_sequence", instance_serialization=instance_sequence)
     print("Successfully completion." + "\n" + process_line)
 
