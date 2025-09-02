@@ -139,5 +139,5 @@ if __name__ == "__main__":
     print("# Schemas: "+ str(len(df_graph[df_graph.type=="schema"])))
     print("# Tables: "+ str(len(df_graph[df_graph.type=="table"])))
     print("# Attributes: "+ str(len(df_graph[df_graph.type=="attribute"])))
-    print("Path: " + directory_path + "/schema_graph.csv")
-    print("Successfully completion." + "\n" + process_line)
+    print("Exported file: " + directory_path+"/schema_graph.csv")
+    print("Process successfully completed." + "\n" + process_line)

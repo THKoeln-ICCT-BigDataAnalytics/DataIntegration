@@ -211,8 +211,7 @@ if __name__ == "__main__":
     print("# Schemas: "+ str(len(df_graph[df_graph.type=="schema"])))
     print("# Tables: "+ str(len(df_graph[df_graph.type=="table"])))
     print("# Attributes: "+ str(len(df_graph[df_graph.type=="attribute"])))
-    print("Path: " + directory_path + "/schema_graph.csv")
-    print("Successfully completion." + "\n" + process_line)
+    print("Read successfully completed." + "\n" + process_line)
     
     print(process[0] + "\n" + process_line)
     df_graph['text_sequence'] = df_graph['text_sequence'].astype(str)
@@ -226,9 +225,10 @@ if __name__ == "__main__":
         instance_sequence = None
 
     entities = encode_signatures_from_df(df_graph, serialization="text_sequence", instance_serialization=instance_sequence)
-    print("Successfully completion." + "\n" + process_line)
+    print("Process successfully completed." + "\n" + process_line)
 
     print(process[1] + "\n" + process_line)
     df_graph_collaborative_scoping = collaborative_scoping_track(entities, df_graph)
     df_graph_collaborative_scoping.to_csv(directory_path+"/collaborative_scoping.csv", index=False)
-    print("Successfully completion." + "\n" + process_line)
+    print("Exported file: " + directory_path+"/collaborative_scoping.csv")
+    print("Process successfully completed." + "\n" + process_line)

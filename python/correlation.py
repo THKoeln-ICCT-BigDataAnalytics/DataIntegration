@@ -1,82 +1,103 @@
+import sys
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 import itertools
+import os
+import ast
 
-# CSV laden
-df_collaborative_scoping = pd.read_csv("https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/collaborative_scoping.csv")
+def compute_correlation(df_collaborative_scoping):
+    # CSV laden
 
-schemas = df_collaborative_scoping.schema.unique()
-schemas_agree = [str(schema) + "_agree" for schema in schemas] 
-dict_agree_schemas = dict(zip(schemas_agree, schemas))
+    schemas = df_collaborative_scoping.schema.unique()
+    schemas_agree = [str(schema) + "_agree" for schema in schemas] 
+    dict_agree_schemas = dict(zip(schemas_agree, schemas))
+    v_values = sorted(df_collaborative_scoping["v"].dropna().unique(), reverse=True)
 
-# agree_cols = ["OC_ORACLE_agree", "OC_MYSQL_agree", "OC_SAP_agree", "FORMULA_agree"]
-v_values = sorted(df_collaborative_scoping["v"].dropna().unique(), reverse=True)
+    results = []
 
-results = []
-results_filtered = []
+    for v in v_values:
+        df_collaborative_scoping_v = df_collaborative_scoping[df_collaborative_scoping["v"] == v]
 
-# Mapping von "_agree"-Spalten zu den Schema-Namen
-# schema_mapping = {
-#     "OC_ORACLE_agree": "OC-ORACLE",
-#     "OC_MYSQL_agree": "OC-MYSQL",
-#     "OC_SAP_agree": "OC-SAP",
-#     "FORMULA_agree": "FORMULA"
-# }
+        for src, tgt in itertools.combinations(schemas_agree, 2):
+            entry = {
+                "v": v,
+                "source": dict_agree_schemas[src],
+                "target": dict_agree_schemas[tgt]
+            }
 
-for v in v_values:
-    df_collaborative_scoping_v = df_collaborative_scoping[df_collaborative_scoping["v"] == v]
-
-    
-    if "predict_linkability" in df_collaborative_scoping_v.columns:
-        df_collaborative_scoping_v_true = df_collaborative_scoping_v[df_collaborative_scoping_v["predict_linkability"] == True]
-        df_collaborative_scoping_v_false = df_collaborative_scoping_v[df_collaborative_scoping_v["predict_linkability"] == False]
-
-
-    for src, tgt in itertools.combinations(schemas_agree, 2):
-        entry = {
-            "v": v,
-            "source": dict_agree_schemas[src],
-            "target": dict_agree_schemas[tgt]
-        }
-
-        # all: alle schema elemente unabhängig vom Ursprung
-        if len(df_collaborative_scoping) >= 2:
+            # all: alle schema elemente unabhängig vom Ursprung
             corr_all = df_collaborative_scoping_v[schemas_agree].corr().loc[src, tgt]
             entry["all"] = corr_all
-        else:
-            entry["all"] = np.NaN
 
-        # filtered correlation: nur schema elemente, welche nicht von src oder tgt herkommen
-        df_collaborative_scoping_v_filtered = df_collaborative_scoping_v[(df_collaborative_scoping_v[src] == 0) & (df_collaborative_scoping_v[tgt] == 0)]
-
-        if len(df_collaborative_scoping_v_filtered) >= 2:
-            remaining_schemas = [c for c in schemas_agree if c not in [src, tgt]]
-            corr_filtered = df_collaborative_scoping_v_filtered[remaining_schemas].corr().iloc[0, 1]
+            # filtered correlation: nur schema elemente, welche nicht von src oder tgt herkommen
+            df_collaborative_scoping_v_filtered = df_collaborative_scoping_v[(df_collaborative_scoping_v.schema != dict_agree_schemas[src]) & (df_collaborative_scoping_v.schema != dict_agree_schemas[tgt])]
+            corr_filtered = df_collaborative_scoping_v_filtered[schemas_agree].corr().loc[src, tgt]
             entry["filtered"] = corr_filtered
-        else:
-            entry["filtered"] = np.NaN
+
+            # filtered_true correlation: nur schema elemente, welche nicht von src oder tgt herkommen, wo aber mindestens src oder tgt "true" vorhersagen
+            df_collaborative_scoping_v_filtered_true_pred  = df_collaborative_scoping_v_filtered[(df_collaborative_scoping_v_filtered[src]==True) | (df_collaborative_scoping_v_filtered[tgt]==True)]
+            corr_filtered_true_pred = df_collaborative_scoping_v_filtered_true_pred[schemas_agree].corr().loc[src, tgt]
+            entry["filtered_true"] = corr_filtered_true_pred
+
+            results.append(entry)
+    
+    # Alle Korrelationen
+    return pd.DataFrame(results)
 
 
-        # all_true
-        # if len(df_collaborative_scoping_v_true) >= 2:
-        #     corr_true = df_collaborative_scoping_v_true[schemas].corr().loc[src, tgt]
-        #     entry["all_true"] = corr_true
-        # else:
-        #     entry["all_true"] = np.NaN
+def plot_correlation(df_correlation, directory_path):
+    categories = ["all", "filtered", "filtered_true"]
+   
+    # Für jede Kategorie ein eigenes Diagramm
+    for cat in categories:
+        plt.figure(figsize=(12, 12))
 
-        # # all_false
-        # if len(df_collaborative_scoping_v_false) >= 2:
-        #     corr_false = df_collaborative_scoping_v_false[schemas].corr().loc[src, tgt]
-        #     entry["all_false"] = corr_false
-        # else:
-        #     entry["all_false"] = np.NaN
+        # Spalte in numerisch umwandeln (damit Strings oder "-" ignoriert werden)
+        df_correlation[cat] = pd.to_numeric(df_correlation[cat], errors="coerce")
 
-        results.append(entry)
+        # Jede Kombination von source/target bekommt eine eigene Linie
+        for (src, tgt), group in df_correlation.groupby(["source", "target"]):
+            sub = group.dropna(subset=[cat])
+            sub = sub.sort_values("v", ascending=True)  # normale Reihenfolge
+
+            linestyle = "--" if "FORMULA" in str(src) or "FORMULA" in str(tgt) else "-"
+
+            plt.plot(sub["v"], sub[cat], label=f"{src}-{tgt}", linestyle = linestyle)
+
+        plt.title(f"Korrelation ({cat})")
+        plt.xlabel("v")
+        plt.ylabel("$r$ (pearson)")
+        plt.ylim(-1, 1)
+        plt.legend()
+        plt.grid(True)
+        plt.gca().invert_xaxis()  # Dreht die X-Achse: 99 links, 1 rechts
+        # plt.show()
+        plt.savefig(directory_path + "/" + cat+".png")
+        print("Exported file: " + directory_path+"/"+cat+".png")
 
 
-# Alle Korrelationen
-df_result = pd.DataFrame(results)
-df_result.sort_values(by=["v", "source", "target"], inplace=True)
-df_result.to_csv("linkability_correlation.csv", index=False)
+if __name__ == "__main__":
+    directory_path = str(sys.argv[1]) #C:\Users\leona\Documents\GitHub\DataIntegration\data\IMDbSakilaMovieLens
+    
 
-print("Normale Korrelationen:", df_result.head(10))
+    # process = ["1. Schema Signature Encoding", "2. Linkability Assessment with Collaborative Scoping", "3. Correlation of Linkability Assessment", "4. Linkages"]
+    process_line ="============================================================================================="
+
+    print(process_line +  "\n" + "Read " + directory_path+"/collaborative_scoping.csv")
+    df_collaborative_scoping = pd.read_csv(directory_path+"/collaborative_scoping.csv")
+    print("Collaborative Scoping Metadata:")
+    print("# Schemas: "+ str(len(df_collaborative_scoping.schema.unique())))
+    print("Read successfully completed." + "\n" + process_line)
+    
+    print("3. Correlation of Linkability Assessment \n" + process_line)
+    df_correlation = compute_correlation(df_collaborative_scoping)
+    df_correlation.sort_values(by=["v", "source", "target"], inplace=True)
+    df_correlation.to_csv(directory_path+"/correlation.csv", index=False)
+    print("Exported file: " + directory_path+"/correlation.csv")
+    plot_correlation(df_correlation, directory_path)
+    print("Process successfully completed." + "\n" + process_line)
+
+
+
+
