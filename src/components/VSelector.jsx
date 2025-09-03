@@ -22,7 +22,9 @@ const VSelector = ({ vValue, setVValue, validityData, graphNodes = [], refreshGr
       const matchingData = validityData.find(
         (data) => data.id === node.id && Number(data.v) === newV
       );
-
+      if ((node.type === "schema") | (node.id === "base")) {
+        return; // Skip update for schema type nodes
+      }
       if (matchingData) {
         node.setOverallAgreement(matchingData.overall_agreement);
         node.setPredictLinkability(matchingData.predict_linkability);

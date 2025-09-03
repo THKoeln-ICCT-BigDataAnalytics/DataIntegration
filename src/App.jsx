@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import GenNavbar from "./components/Navbar";
 import Graph from "./components/Graph";
 import DatasetsPanel from "./components/DatasetsPanel";
 import TestComponent from "./components/TestComponent";
@@ -11,6 +10,8 @@ import LinkDataButton from "./components/LinkDataButton";
 import VSelector from "./components/VSelector";
 import SliderControl from "./components/SliderControl";
 import ExportButton from "./components/ExportButton";
+import FilterSchemas from "./components/FilterSchemas";
+import FilterSchemasLinkability from "./components/FilterSchemasLinkability";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 import Navbar from 'react-bootstrap/Navbar';
@@ -22,16 +23,31 @@ function App() {
   const [linkData, setLinkData] = useState([]);
   const [correlationData, setCorrelationData] = useState([]); 
   const [selectedNode, setSelectedNode] = useState(null);
-  // const [showTest, setShowTest] = useState(false);
   const [vValue, setVValue] = useState(1);
   const [graphKey, setGraphKey] = useState(0);
-  const [sliderValue, setSliderValue] = useState(0.5);
+  const [tValue, setTValue] = useState(0.5);
   const svgRef = useRef(null);
+
+
+  const [schemas, setSchemas] = useState([]);
+  const [schemasLinkability, setSchemasLinkability] = useState([]);
+  const [processedNodes, setProcessedNodes] = useState([]);
 
   const refreshGraph = () => {
     setGraphKey(prevKey => prevKey + 1);
     console.log("🔄 Graph wird neu gezeichnet!");
   };
+
+  // After nodes are processed in Graph, receive them via callback
+  // const handleNodesUpdate = (nodes) => {
+    // setProcessedNodes(nodes);
+
+  //   // Initialize visibleSchemaLinkability to all schemas on first load
+  //   if (visibleSchemaLinkability.length === 0) {
+  //     const schemas = Array.from(new Set(nodes.filter(n => n.data.type === "schema").map(n => n.data.schema)));
+  //     setVisibleSchemaLinkability(schemas);
+  //   }
+  // };
 
   useEffect(() => {
     if (csvData.length > 0 && linkData.length > 0) {
@@ -92,11 +108,18 @@ function App() {
             }}>
               <tbody>
                 <tr>
-                  <td style={{ fontWeight: "bold", paddingRight: "12px" }}>Schema Graph</td>
+                  <td style={{ fontWeight: "bold", paddingRight: "12px" }}>SchemasToGraph</td>
                   <td><CsvUploader onDataLoaded={setCsvData} /></td>
+                  <td>
+                     <FilterSchemas
+                      schemas={schemas}
+                      setSchemas={setSchemas}
+                      refreshGraph={refreshGraph}
+                    />                    
+                  </td>
                 </tr>
                 <tr>
-                  <td style={{ fontWeight: "bold", paddingRight: "12px" }}>Collaborative Scoping</td>
+                  <td style={{ fontWeight: "bold", paddingRight: "12px" }}>LinkabilityAssessor</td>
                   <td>
                     <ValidityCheckerButton 
                       onDataLoaded={data => data.length > 0 && setValidityData(data)} 
@@ -110,10 +133,15 @@ function App() {
                       setVValue={setVValue} 
                       refreshGraph={refreshGraph}
                     />
+                    <FilterSchemasLinkability
+                      schemasLinkability={schemasLinkability}
+                      setSchemasLinkability={setSchemasLinkability}
+                      refreshGraph={refreshGraph}
+                    />
                   </td>
                 </tr>
                 <tr>
-                  <td style={{ fontWeight: "bold", paddingRight: "12px" }}>Correlation</td>
+                  <td style={{ fontWeight: "bold", paddingRight: "12px" }}>LinkabilityCorrelator</td>
                   <td>
                     <CorrelationLinkButton onDataLoaded={data => data.length > 0 && setCorrelationData(data)} />
                   </td>
@@ -129,7 +157,7 @@ function App() {
                     />
                   </td>
                   <td>
-                    <SliderControl value={sliderValue} setValue={setSliderValue} />
+                    <SliderControl tValue={tValue} setTValue={setTValue} />
                   </td>
                 </tr>
               </tbody>
@@ -145,10 +173,15 @@ function App() {
       <Graph
           key={graphKey} 
           data={csvData} 
+          onNodesUpdate={setProcessedNodes}
           onNodeClick={setSelectedNode} 
-          sliderValue={sliderValue} 
+          tValue={tValue}
+          vValue={vValue}
+          schemas={schemas}
+          setSchemas={setSchemas}
+          schemasLinkability={schemasLinkability}
+          setSchemasLinkability={setSchemasLinkability}
           correlationData={correlationData}
-          currentV={vValue}
           svgRef={svgRef}
       />
       

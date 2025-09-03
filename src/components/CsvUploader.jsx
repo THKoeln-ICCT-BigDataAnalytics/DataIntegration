@@ -75,10 +75,6 @@ const CsvUploader = ({ onDataLoaded }) => {
   };
 
   return (
-    // <div>
-      // <h2>Schema Graph</h2>
-      // <input id="upload_schema_graph" type="file" accept=".csv" onChange={handleFileUpload} />
-    // </div>
     <div>
       <Form.Group controlId="upload_schema_graph" className="mb-3">
         <Form.Control type="file" onChange={handleFileUpload} size="sm"/>

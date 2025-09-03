@@ -1,12 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
-import ExportButton from "./ExportButton";
 import getColorForSchema from "./SchemaColorMapping";
 import enableDrag from "./DragHandler";
 import databaseIcon from "../assets/database.svg";
 import tableIcon from "../assets/table.svg";
 
-const Graph = ({ svgRef, data, onNodeClick, sliderValue, correlationData = [], currentV }) => {
+const Graph = ({ svgRef, data, onNodesUpdate, onNodeClick,
+  schemas, setSchemas,
+  schemasLinkability, setSchemasLinkability,
+   vValue, tValue, correlationData = [] }) => {
   // const svgRef = useRef();
   const gRef = useRef();
   const nodesRef = useRef(null);
@@ -16,20 +18,20 @@ const Graph = ({ svgRef, data, onNodeClick, sliderValue, correlationData = [], c
   const [zoomLevel, setZoomLevel] = useState(1);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
 
-  // Debug-Ausgabe für sliderValue
+  // Debug-Ausgabe für tValue
   useEffect(() => {
-    console.log("Aktueller sliderValue in Graph:", sliderValue);
-  }, [sliderValue]);
+    console.log("Aktueller threshold für Verlinkungen in Graph:", tValue);
+  }, [tValue]);
 
   // Funktion zum Herunterladen der Datei von GitHub
-  const downloadFile = async (fileUrl, filename) => {
-    const response = await fetch(fileUrl);
-    const blob = await response.blob();
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = filename;
-    link.click();
-  };
+  // const downloadFile = async (fileUrl, filename) => {
+  //   const response = await fetch(fileUrl);
+  //   const blob = await response.blob();
+  //   const link = document.createElement("a");
+  //   link.href = URL.createObjectURL(blob);
+  //   link.download = filename;
+  //   link.click();
+  // };
 
   // Farbskala für cosine_similarity (-1 bis 1)
   const colorScale = d3.scaleLinear()
@@ -49,7 +51,7 @@ const Graph = ({ svgRef, data, onNodeClick, sliderValue, correlationData = [], c
           .map(link => {
             const targetNode = nodesRef.current.find(n => n.data.id === link.entity_b_id);
             const cosineSimilarity = parseFloat(link.cosine_similarity);
-            return targetNode && cosineSimilarity > sliderValue ? {
+            return targetNode && cosineSimilarity > tValue ? {
               source: selectedNode,
               target: targetNode,
               cosine_similarity: cosineSimilarity,
@@ -90,12 +92,11 @@ const Graph = ({ svgRef, data, onNodeClick, sliderValue, correlationData = [], c
 
   // Nur die Schema-Nodes aus allen vorhandenen Nodes herausfiltern
   const schemaNodes = nodesRef.current.filter(n => n.data.type === "schema");
-
   // Korrelationen auf die aktuelle Variante (v) einschränken
   const filteredCorrelations = correlationData.filter(
-    d => Number(d.v) === Number(currentV)
+    d => Number(d.v) === Number(vValue)
   );
-  console.log(`Gefilterte Korrelationen für v=${currentV}:`, filteredCorrelations);
+  console.log(`Gefilterte Korrelationen für v=${vValue}:`, filteredCorrelations);
 
   filteredCorrelations.forEach(d => {
   // Schlüssel für beide Schemas vereinheitlichen
@@ -134,7 +135,6 @@ const Graph = ({ svgRef, data, onNodeClick, sliderValue, correlationData = [], c
   });
 };
 
-
   useEffect(() => {
     console.log("Empfangene Daten:", data);
     if (!data || data.length === 0) {
@@ -156,23 +156,62 @@ const Graph = ({ svgRef, data, onNodeClick, sliderValue, correlationData = [], c
     svg.call(zoomRef.current.on("zoom", (event) => {
       g.attr("transform", event.transform);
     }));
-
+    
+    
     const copiedData = JSON.parse(JSON.stringify(data));
 
     const filterNodesRecursively = (node) => {
       if (!node) return null;
+
       const filteredChildren = node.children
         ? node.children.map(filterNodesRecursively).filter(child => child !== null)
         : [];
-      if (String(node.predict_linkability).toLowerCase() !== "false" || filteredChildren.length > 0) {
+
+      // Start with true to include node, then restrict with conditions
+      let shouldInclude = true;
+
+      if (Object.keys(schemas).length > 0) {
+        shouldInclude = shouldInclude && (schemas[node.schema] === true);
+      }
+
+      if (Object.keys(schemasLinkability).length > 0) {
+        // Check agreeFlags for at least one other schema with agree=1 and linkability=true
+        const agreeFlags = node.agreeFlags || {};
+        const nodeSchemaAgreeKey = `${node.schema}_agree`;
+
+        // Check if any other schema agree flag is set AND that schema is enabled in schemasLinkability
+        const hasMatchingAgreeFlag = Object.entries(agreeFlags).some(([key, value]) => {
+          // key must end with '_agree'
+          if (!key.endsWith('_agree')) return false;
+          // skip own schema's agree key
+          if (key === nodeSchemaAgreeKey) return false;
+          // schema name for linkability check is key without _agree suffix
+          const schemaName = key.slice(0, -6);
+          return (value === 1 || value === "1" || value === true) && schemasLinkability[schemaName] === true;
+        });
+
+        shouldInclude = shouldInclude && hasMatchingAgreeFlag;
+      }
+      
+      shouldInclude = shouldInclude && (String(node.predict_linkability).toLowerCase() !== "false");
+
+      // Always keep base node if applicable, can add here too:
+      if ((node.id === "base") | (node.type === "schema")) {
         return { ...node, children: filteredChildren };
       }
+      
+      // Return node if all filter conditions passed or it has children (preserve hierarchy)
+      if (shouldInclude || filteredChildren.length > 0) {
+        return { ...node, children: filteredChildren };
+      }
+
       return null;
     };
 
     const filteredData = copiedData
       .map(filterNodesRecursively)
       .filter(node => node !== null);
+
 
     console.log("Nach Filterung unsichtbarer Nodes:", filteredData);
     if (filteredData.length === 0) {
@@ -199,7 +238,30 @@ const Graph = ({ svgRef, data, onNodeClick, sliderValue, correlationData = [], c
 
     const nodes = root.descendants();
     nodesRef.current = nodes;
+    // pass nodes up to App
+    if(onNodesUpdate) onNodesUpdate(nodes);
+
     const links = root.links();
+
+     // 1. Extract unique schemas from schemaNodes
+    const schemaNodes = nodesRef.current.filter(n => n.data.type === "schema");
+    const uniqueSchemas = Array.from(new Set(schemaNodes.map(n => n.data.schema)));
+
+    // Global state update logic:
+    if (Object.keys(schemas).length === 0) {
+      // Set schemas as key-value object:
+      setSchemas(Object.fromEntries(uniqueSchemas.map(schema => [schema, true])));
+    }
+
+    if (Object.keys(schemasLinkability).length === 0) {
+      // Set schemasLinkability as key-value object:
+      setSchemasLinkability(Object.fromEntries(uniqueSchemas.map(schema => [schema, true])));
+    }
+
+
+    
+    
+
 
     const simulation = d3.forceSimulation(nodes)
       .force("link", d3.forceLink(links).id(d => d.id).distance(180).strength(1))
@@ -286,12 +348,10 @@ const Graph = ({ svgRef, data, onNodeClick, sliderValue, correlationData = [], c
       .attr("r", 8)
       .attr("fill", d => getColorForSchema(d.data.schema));
 
-    // 1. Extract unique schemas from schemaNodes
-    const schemaNodes = nodesRef.current.filter(n => n.data.type === "schema");
-    const uniqueSchemas = Array.from(new Set(schemaNodes.map(n => n.data.schema)));
+    
 
       // 2. Generate agreeMarkers dynamically with color from schema
-    const agreeMarkers = uniqueSchemas.map((schemaName, i) => ({
+    const agreeMarkers = Object.keys(schemasLinkability).map((schemaName, i) => ({
       key: `${schemaName}_agree`,
       color: getColorForSchema(schemaName),
       offset: -15 + i * 5  // adjust spacing as needed
@@ -300,7 +360,8 @@ const Graph = ({ svgRef, data, onNodeClick, sliderValue, correlationData = [], c
     agreeMarkers.forEach(marker => {
       const filteredNodes = nodeGroups.filter(d => {
         const value = d.data.agreeFlags ? d.data.agreeFlags[marker.key] : 0;
-        return value === 1 || value === "1" || value === true;
+        return (d.data.schema !== marker.key.replace('_agree', '')) && (value === 1 || value === "1" || value === true);
+        // Only include nodes where the schema is NOT the marker schema
       });
       filteredNodes
         .append("circle")
@@ -359,13 +420,13 @@ const Graph = ({ svgRef, data, onNodeClick, sliderValue, correlationData = [], c
     if (gRef.current && nodesRef.current && specialLinkGroupRef.current) {
       updateSpecialLinks();
     }
-  }, [selectedNodeId, sliderValue]); // sliderValue als Abhängigkeit hinzufügen
+  }, [selectedNodeId, tValue]); // tValue als Abhängigkeit hinzufügen
 
   useEffect(() => {
     if (gRef.current && nodesRef.current && correlationLinkGroupRef.current) {
       updateCorrelationLinks();
     }
-  }, [correlationData, currentV]); 
+  }, [correlationData, vValue, schemas, schemasLinkability, setSchemas, setSchemasLinkability]); 
 
   
   return (

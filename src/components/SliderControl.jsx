@@ -1,8 +1,8 @@
 import React from "react";
 //Aktualisierung triggert automatisch ohne weitere Implementierung die Veränderung der Verlinkungen. Wird auch hier refreshGraph ausgelöst
-function SliderControl({ value, setValue }) {
+function SliderControl({ tValue, setTValue }) {
   const handleChange = (event) => {
-    setValue(parseFloat(event.target.value));
+    setTValue(parseFloat(event.target.value));
   };
 
   return (
@@ -20,10 +20,10 @@ function SliderControl({ value, setValue }) {
         min="0"
         max="1"
         step="0.01"
-        value={value}
+        value={tValue.toFixed(2)}
         onChange={handleChange}
       />
-      <span>{value.toFixed(2)}</span>
+      <span>{tValue.toFixed(2)}</span>
     </div>
   );
 }

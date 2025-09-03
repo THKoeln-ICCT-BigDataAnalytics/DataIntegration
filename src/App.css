@@ -51,3 +51,7 @@ th, td {
   padding: 6px;
   text-align: center; /* Optional centering */
 }
+
+.navbar.transparent.navbar-inverse .navbar-inner {
+   background: rgba(0,0,0,0.4);
+}
