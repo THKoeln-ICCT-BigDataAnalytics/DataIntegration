@@ -1,8 +1,8 @@
 import React from "react";
-import useVisibilityManager from "./VisibilityManager"; // Neuer Import
+// import useVisibilityManager from "./VisibilityManager"; // Neuer Import
 
 const VSelector = ({ vValue, setVValue, validityData, graphNodes = [], refreshGraph }) => {
-  const { updateHiddenNodes } = useVisibilityManager(); // Hook verwenden
+  // const { updateHiddenNodes } = useVisibilityManager(); // Hook verwenden
 
   const handleVChange = (newV) => {
     setVValue(newV);
@@ -56,8 +56,8 @@ const VSelector = ({ vValue, setVValue, validityData, graphNodes = [], refreshGr
       refreshGraph();
 
       // **Visibility-Manager aufrufen und Debugging-Log hinzufügen**
-      updateHiddenNodes(graphNodes);
-      console.log("Versteckte Nodes nach Update:", updateHiddenNodes(graphNodes));
+      // updateHiddenNodes(graphNodes);
+      // console.log("Versteckte Nodes nach Update:", updateHiddenNodes(graphNodes));
     } else {
       console.warn("Keine GraphNodes zum Aktualisieren vorhanden.");
     }

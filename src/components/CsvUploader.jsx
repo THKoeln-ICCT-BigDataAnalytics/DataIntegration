@@ -56,7 +56,7 @@ const CsvUploader = ({ onDataLoaded }) => {
       
       // Falls mehrere unabhängige Graphen existieren, verbinde sie mit einem Base-Knoten
       if (rootNodes.length > 1) {
-        const baseNode = new GraphNode("base", "Base Node", null);
+        const baseNode = new GraphNode("base", "base", null);
         baseNode.isVirtual = true; // Base-Knoten als virtuelle Entity markieren
         rootNodes.forEach(node => baseNode.addChild(node));
         rootNodes = [baseNode];

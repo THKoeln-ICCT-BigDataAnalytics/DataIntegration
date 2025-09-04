@@ -20,8 +20,8 @@ import Navbar from 'react-bootstrap/Navbar';
 function App() {
   const [csvData, setCsvData] = useState([]);
   const [validityData, setValidityData] = useState([]);
-  const [linkData, setLinkData] = useState([]);
   const [correlationData, setCorrelationData] = useState([]); 
+  const [linkData, setLinkData] = useState([]);
   const [selectedNode, setSelectedNode] = useState(null);
   const [vValue, setVValue] = useState(1);
   const [graphKey, setGraphKey] = useState(0);
@@ -192,15 +192,6 @@ function App() {
           ⚙️ Zoom, Drag & Drop 
           ⭕ Note: Shift + click on a table pulls its columns closer.
           ℹ️ <TestComponent node={selectedNode} /> 
-          {/* {selectedNode && (
-            <div> */}
-              {/* <button onClick={() => setShowTest(!showTest)}>
-                {showTest ? "Hide Details" : "Show Details"}
-              </button> */}
-              
-            {/* </div>
-          )} */}
-          {/* Double-click opens a detailed view of the linkages<br /><br /> */}
         </p>
       </Navbar>
       

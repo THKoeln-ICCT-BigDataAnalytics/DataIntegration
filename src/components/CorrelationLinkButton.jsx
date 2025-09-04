@@ -6,10 +6,10 @@ const CorrelationLinkButton = ({ onDataLoaded }) => {
   const [csvRows, setCsvRows] = useState([]);
   const [activeType, setActiveType] = useState(null);
 
+
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
 
     Papa.parse(file, {
       header: true,
@@ -18,6 +18,7 @@ const CorrelationLinkButton = ({ onDataLoaded }) => {
         setCsvRows(result.data);
       }
     });
+
   };
 
   const handleTypeSelect = (type) => {
@@ -30,40 +31,52 @@ const CorrelationLinkButton = ({ onDataLoaded }) => {
       correlation_value: parseFloat(row[type])
     }));
 
-    setActiveType(type);
     onDataLoaded(convertedData);
   };
 
   // Render only buttons as a separate component
   const Buttons = () => {
-     if (csvRows.length === 0) return null;
-
-    const buttonStyle = (type) => ({
-      backgroundColor: activeType === type ? "#9b59b6" : "#3498db",
-      color: "#fff",
-      padding: "5px 10px",
-      marginRight: "5px",
-      border: "none",
-      borderRadius: "4px",
-      cursor: "pointer"
-    });
-
     return (
-      <div style={{ marginTop: "10px" }}>
-        <button onClick={() => handleTypeSelect("all")} style={buttonStyle("all")}>All</button>
-        <button onClick={() => handleTypeSelect("all_true")} style={buttonStyle("all_true")}>Linkable True</button>
-        <button onClick={() => handleTypeSelect("all_false")} style={buttonStyle("all_false")}>Linkable False</button>
-       </div>
+    <Form>
+        <div key={`inline-radio`} className="mb-3">
+          <Form.Check
+            inline
+            label="all"
+            name="correlation_radios"
+            type="radio"
+            id="correlation_all"
+            onChange={() => { setActiveType("all"); handleTypeSelect("all"); } }
+            checked={activeType === "all"}
+            disabled={!csvRows.length}
+          />
+          <Form.Check
+            inline
+            label="filtered"
+            name="correlation_radios"
+            type="radio"
+            id="correlation_filtered"
+            onChange={() => { setActiveType("filtered"); handleTypeSelect("filtered"); } }
+            checked={activeType === "filtered"}
+            disabled={!csvRows.length}
+          />
+          <Form.Check
+            inline
+            label="filtered_true"
+            name="correlation_radios"
+            type="radio"
+            id="correlation_filtered_true"
+            onChange={() => { setActiveType("filtered_true"); handleTypeSelect("filtered_true"); } }
+            checked={activeType === "filtered_true"}
+            disabled={!csvRows.length}
+          />
+        </div>
+    </Form>
     );
   };
 
-  
   CorrelationLinkButton.Buttons = Buttons;
 
   return (
-    // <div>
-    //   <input id="upload_correlation" type="file" accept=".csv" onChange={handleFileUpload} />
-    // </div>
     <div>
       <Form.Group controlId="upload_correlation" className="mb-3">
         <Form.Control type="file" onChange={handleFileUpload} size="sm"/>

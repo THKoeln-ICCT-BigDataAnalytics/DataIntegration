@@ -17,11 +17,11 @@ import Button from 'react-bootstrap/Button';
       filename: "OC3_collaborative_scoping.csv",
       uploadInputId: "upload_collaborative_scoping",
     },
-    // {
-    //   url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/correlation.csv",
-    //   filename: "OC3_correlation.csv",
-    //   uploadInputId: "upload_correlation",
-    // },
+    {
+      url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3/correlation.csv",
+      filename: "OC3_correlation.csv",
+      uploadInputId: "upload_correlation",
+    },
     // {
     //   url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/linkages.csv",
     //   filename: "OC3_linkages.csv",
@@ -65,11 +65,11 @@ import Button from 'react-bootstrap/Button';
       filename: "ISM_collaborative_scoping.csv",
       uploadInputId: "upload_collaborative_scoping",
     },
-    // {
-    //   url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/correlation.csv",
-    //   filename: "ISM_correlation.csv",
-    //   uploadInputId: "upload_correlation",
-    // },
+    {
+      url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/ISM/correlation.csv",
+      filename: "ISM_correlation.csv",
+      uploadInputId: "upload_correlation",
+    },
     // {
     //   url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/linkages.csv",
     //   filename: "ISM_linkages.csv",
@@ -89,11 +89,11 @@ import Button from 'react-bootstrap/Button';
       filename: "ISMFO_collaborative_scoping.csv",
       uploadInputId: "upload_collaborative_scoping",
     },
-    // {
-    //   url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/correlation.csv",
-    //   filename: "ISMFO_correlation.csv",
-    //   uploadInputId: "upload_correlation",
-    // },
+    {
+      url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/ISMFO/correlation.csv",
+      filename: "ISMFO_correlation.csv",
+      uploadInputId: "upload_correlation",
+    },
     // {
     //   url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/linkages.csv",
     //   filename: "ISMFO_linkages.csv",
