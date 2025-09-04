@@ -174,7 +174,7 @@ const Graph = ({ svgRef, data, onNodesUpdate, onNodeClick,
         shouldInclude = shouldInclude && (schemas[node.schema] === true);
       }
 
-      if (Object.keys(schemasLinkability).length > 0) {
+      if ((Object.keys(schemasLinkability).length) > 0 && (vValue)) {
         // Check agreeFlags for at least one other schema with agree=1 and linkability=true
         const agreeFlags = node.agreeFlags || {};
         const nodeSchemaAgreeKey = `${node.schema}_agree`;

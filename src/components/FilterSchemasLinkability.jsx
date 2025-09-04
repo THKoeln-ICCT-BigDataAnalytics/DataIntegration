@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import getColorForSchema from "./SchemaColorMapping";
 
-const FilterSchemasLinkability = ({schemasLinkability, setSchemasLinkability, refreshGraph}) => { 
+const FilterSchemasLinkability = ({vValue, schemasLinkability, setSchemasLinkability, refreshGraph}) => { 
   const handleToggle = (schema) => {
     setSchemasLinkability(prev => ({
       ...prev,
@@ -11,6 +11,7 @@ const FilterSchemasLinkability = ({schemasLinkability, setSchemasLinkability, re
   };
 
   return (
+    vValue && (
     <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
       {Object.keys(schemasLinkability).map(schema => (
         <div
@@ -34,7 +35,7 @@ const FilterSchemasLinkability = ({schemasLinkability, setSchemasLinkability, re
           </label>
         </div>
       ))}
-    </div>
+    </div>)
   );
 };
 

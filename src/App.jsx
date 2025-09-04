@@ -23,7 +23,7 @@ function App() {
   const [correlationData, setCorrelationData] = useState([]); 
   const [linkData, setLinkData] = useState([]);
   const [selectedNode, setSelectedNode] = useState(null);
-  const [vValue, setVValue] = useState(1);
+  const [vValue, setVValue] = useState(null);
   const [graphKey, setGraphKey] = useState(0);
   const [tValue, setTValue] = useState(0.5);
   const svgRef = useRef(null);
@@ -134,6 +134,7 @@ function App() {
                       refreshGraph={refreshGraph}
                     />
                     <FilterSchemasLinkability
+                      vValue={vValue}
                       schemasLinkability={schemasLinkability}
                       setSchemasLinkability={setSchemasLinkability}
                       refreshGraph={refreshGraph}
