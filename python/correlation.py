@@ -30,6 +30,11 @@ def compute_correlation(df_collaborative_scoping):
             corr_all = df_collaborative_scoping_v[schemas_agree].corr().loc[src, tgt]
             entry["all"] = corr_all
 
+            # all_true correlation: alle schema elemente unabhängig vom Ursprung, wo aber mindestens src oder tgt "true" vorhersagen
+            df_collaborative_scoping_v_true  = df_collaborative_scoping_v[(df_collaborative_scoping_v[src]==True) | (df_collaborative_scoping_v[tgt]==True)]
+            corr_all_true_pred = df_collaborative_scoping_v_true[schemas_agree].corr().loc[src, tgt]
+            entry["all_true"] = corr_all_true_pred
+
             # filtered correlation: nur schema elemente, welche nicht von src oder tgt herkommen
             df_collaborative_scoping_v_filtered = df_collaborative_scoping_v[(df_collaborative_scoping_v.schema != dict_agree_schemas[src]) & (df_collaborative_scoping_v.schema != dict_agree_schemas[tgt])]
             corr_filtered = df_collaborative_scoping_v_filtered[schemas_agree].corr().loc[src, tgt]
@@ -47,7 +52,7 @@ def compute_correlation(df_collaborative_scoping):
 
 
 def plot_correlation(df_correlation, directory_path):
-    categories = ["all", "filtered", "filtered_true"]
+    categories = ["all", "all_true", "filtered", "filtered_true"]
    
     # Für jede Kategorie ein eigenes Diagramm
     for cat in categories:

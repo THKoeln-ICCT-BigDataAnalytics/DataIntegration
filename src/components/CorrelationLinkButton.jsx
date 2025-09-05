@@ -4,7 +4,7 @@ import Form from 'react-bootstrap/Form';
 
 const CorrelationLinkButton = ({ onDataLoaded }) => {
   const [csvRows, setCsvRows] = useState([]);
-  const [activeType, setActiveType] = useState(null);
+  const [activeType, setActiveType] = useState([]);
 
 
   const handleFileUpload = (event) => {
@@ -32,6 +32,7 @@ const CorrelationLinkButton = ({ onDataLoaded }) => {
     }));
 
     onDataLoaded(convertedData);
+    setActiveType(type);
   };
 
   // Render only buttons as a separate component
@@ -45,8 +46,18 @@ const CorrelationLinkButton = ({ onDataLoaded }) => {
             name="correlation_radios"
             type="radio"
             id="correlation_all"
-            onChange={() => { setActiveType("all"); handleTypeSelect("all"); } }
+            onChange={() => {handleTypeSelect("all")} }
             checked={activeType === "all"}
+            disabled={!csvRows.length}
+          />
+          <Form.Check
+            inline
+            label="all_true"
+            name="correlation_radios"
+            type="radio"
+            id="correlation_all_true"
+            onChange={() => {handleTypeSelect("all_true")} }
+            checked={activeType === "all_true"}
             disabled={!csvRows.length}
           />
           <Form.Check
@@ -55,7 +66,7 @@ const CorrelationLinkButton = ({ onDataLoaded }) => {
             name="correlation_radios"
             type="radio"
             id="correlation_filtered"
-            onChange={() => { setActiveType("filtered"); handleTypeSelect("filtered"); } }
+            onChange={() => {handleTypeSelect("filtered")} }
             checked={activeType === "filtered"}
             disabled={!csvRows.length}
           />
@@ -65,7 +76,7 @@ const CorrelationLinkButton = ({ onDataLoaded }) => {
             name="correlation_radios"
             type="radio"
             id="correlation_filtered_true"
-            onChange={() => { setActiveType("filtered_true"); handleTypeSelect("filtered_true"); } }
+            onChange={() => {handleTypeSelect("filtered_true"); } }
             checked={activeType === "filtered_true"}
             disabled={!csvRows.length}
           />

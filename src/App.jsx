@@ -96,7 +96,7 @@ function App() {
               boxShadow: "0 2px 8px rgba(44,62,80,.06)",
               textAlign: "center"
             }}>
-            <h5>Visualize and Explore your Schemas Graph </h5>
+            <h5>Visualize and Navigate through Schemas Graph</h5>
 
             
             <table style={{ 
