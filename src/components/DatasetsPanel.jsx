@@ -189,7 +189,7 @@ const DatasetsPanel = () => {
                         </tr>
                         <tr>
                             <td>
-                            Movies:{" "}
+                            Films-Artists:{" "}
                             <a href="https://developer.imdb.com/non-commercial-datasets/" target="_blank" rel="noreferrer">IMDb</a>,{" "}
                             <a href="https://dev.mysql.com/doc/sakila/en/sakila-installation.html" target="_blank" rel="noreferrer">Sakila (MySQL)</a>, 
                             <a href="https://grouplens.org/datasets/movielens/" target="_blank" rel="noreferrer">MovieLens</a>

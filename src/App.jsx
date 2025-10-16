@@ -96,7 +96,7 @@ function App() {
               boxShadow: "0 2px 8px rgba(44,62,80,.06)",
               textAlign: "center"
             }}>
-            <h5>Visualize and Navigate through Schemas Graph</h5>
+            <h5>Import and Filter the Polystore Graph</h5>
 
             
             <table style={{ 
@@ -151,7 +151,7 @@ function App() {
                   </td>
                 </tr>
                 <tr>
-                  <td style={{ fontWeight: "bold", paddingRight: "12px" }}>Linkages</td>
+                  <td style={{ fontWeight: "bold", paddingRight: "12px" }}>SemanticMatcher</td>
                   <td>
                     <LinkDataButton 
                       onDataLoaded={data => data.length > 0 && setLinkData(data)} 
