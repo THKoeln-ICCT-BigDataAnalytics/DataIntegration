@@ -414,6 +414,10 @@ def get_entity_by_entity_id(entities, entity_id):
 # Cartesian size between schemas 
 # Limited to (a, b) linkages based on schemas (SCHEMA1>SCHEMA2>...) --> no (b, a) linkages
 def get_cartesian_linkages_similarity(df, entities, variant="text_sequence"):
+    node_type_attribute = "attribute"
+    if "column" in df.type.unique():
+        node_type_attribute = "column"
+
     schema_key_ignore = [] 
     cartesian_linkages_similarity = []
     for current_schema_name in list(df.schema.unique()):
@@ -421,7 +425,7 @@ def get_cartesian_linkages_similarity(df, entities, variant="text_sequence"):
         current_schema = df[df.schema == current_schema_name].reset_index(drop=True).copy()
         other_schemas = df[~df.schema.isin(schema_key_ignore)].reset_index(drop=True).copy()
         schema_linkages_tables = list(product(current_schema[current_schema.type == "table"].id, other_schemas[other_schemas.type == "table"].id))
-        schema_linkages_attributes = list(product(current_schema[current_schema.type == "attribute"].id, other_schemas[other_schemas.type == "attribute"].id))
+        schema_linkages_attributes = list(product(current_schema[current_schema.type == node_type_attribute].id, other_schemas[other_schemas.type == node_type_attribute].id))
 
         for linkage in schema_linkages_tables + schema_linkages_attributes:
             signature_a = getattr(get_entity_by_entity_id(entities, linkage[0]), variant)

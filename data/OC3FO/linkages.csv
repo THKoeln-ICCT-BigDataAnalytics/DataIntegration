@@ -1,4 +1,4 @@
-﻿entity_a_id,entity_b_id,cosine_similarity
+entity_a_id,entity_b_id,cosine_similarity
 entity_44,entity_95,0.70654296875
 entity_44,entity_109,0.5651735663414001
 entity_44,entity_118,0.45503681898117065
