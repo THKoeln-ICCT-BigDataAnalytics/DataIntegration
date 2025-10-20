@@ -1,13 +1,24 @@
 import sys
+# a) SchemasToGraph
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import itertools
 import os
+import time
 import ast
+# b.1) SignatureEncoding
+from sentence_transformers import SentenceTransformer, util
+# b.2) LinkabilityAssessor
+from sklearn.metrics import mean_squared_error
+import sklearn
+import sklearn.decomposition
+# c) LinkabilityCorrelator
+# d) SemanticMatcher
+from itertools import product
 
 
-# ====================================================0. Schema Import====================================================
+# ====================================================a) SchemasToGraph====================================================
 class tabular_file:
   def __init__(self, id, name, source_name, df):
     self.id = id
@@ -121,13 +132,14 @@ def build_schema_graph(directory_path, schema_folders=None, extract_metadata=Tru
 
     return df_graph, files
 
+# ============================================== MAIN ====================================================
 
 if __name__ == "__main__":
     directory_path = str(sys.argv[1]) #C:\Users\leona\Desktop\schemas 
     print(len(sys.argv))
     
     schema_folders = None
-    schema_folders = "['oc_mysql', 'oc_oracle', 'tpch_sf1']"
+    # schema_folders = "['oc_mysql', 'oc_oracle', 'tpch_sf1']"
     
     # process = ["a) SchemasToGraph", "b.1) SignatureEncoding", "b.2) LinkabilityAssessor", "c) LinkabilityCorrelator", "d) SemanticMatcher"]
     process_line ="============================================================================================="

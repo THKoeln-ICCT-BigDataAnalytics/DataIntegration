@@ -1,18 +1,25 @@
-
 import sys
+# a) SchemasToGraph
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import itertools
 import os
-import ast
-#1. Schema Signature Encoding
-from sentence_transformers import SentenceTransformer, util
 import time
-#2. Semantic Matching
+import ast
+# b.1) SignatureEncoding
+from sentence_transformers import SentenceTransformer, util
+# b.2) LinkabilityAssessor
+from sklearn.metrics import mean_squared_error
+import sklearn
+import sklearn.decomposition
+# c) LinkabilityCorrelator
+# d) SemanticMatcher
 from itertools import product
 
-# ==============================================1. Schema Signature Encoding====================================================
+#disable DNN message regarding floating numbers
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+# ==============================================b.1) SignatureEncoding====================================================
 
 class Entity: #could be table or column
     def __init__(
@@ -80,18 +87,18 @@ def encode_signatures_from_df(df_graph, model_name='sentence-transformers/all-mp
 
     return entities;
 
-# ==============================================2. Semantic Matching ====================================================
+# ==============================================d) SemanticMatcher ====================================================
 
 
 # Helper Functions
 def get_entity_by_entity_id(entities, entity_id):
   for entity in entities:
-    if entity.entity_id == entity_id:
+    if entity.id == entity_id:
       return entity
     
 # Cartesian size between schemas 
 # Limited to (a, b) linkages based on schemas (SCHEMA1>SCHEMA2>...) --> no (b, a) linkages
-def get_cartesian_linkages_similarity(df, signatures, variant="text_sequence"):
+def get_cartesian_linkages_similarity(df, entities, variant="text_sequence"):
     schema_key_ignore = [] 
     cartesian_linkages_similarity = []
     for current_schema_name in list(df.schema.unique()):
@@ -102,21 +109,17 @@ def get_cartesian_linkages_similarity(df, signatures, variant="text_sequence"):
         schema_linkages_attributes = list(product(current_schema[current_schema.type == "attribute"].id, other_schemas[other_schemas.type == "attribute"].id))
 
         for linkage in schema_linkages_tables + schema_linkages_attributes:
-            signature_a = getattr(get_entity_by_entity_id(signatures, linkage[0]), variant)
-            signature_b = getattr(get_entity_by_entity_id(signatures, linkage[1]), variant)
+            signature_a = getattr(get_entity_by_entity_id(entities, linkage[0]), variant)
+            signature_b = getattr(get_entity_by_entity_id(entities, linkage[1]), variant)
             cartesian_linkages_similarity.append((linkage[0], linkage[1], float(util.cos_sim(signature_a, signature_b))))
 
-    #print(cartesian_linkages_similarity[0][2])
-    return cartesian_linkages_similarity
-
-
-
-
+    return pd.DataFrame(data=cartesian_linkages_similarity, columns=["entity_a_id",	"entity_b_id", "cosine_similarity"])
+    
 
 # ============================================== MAIN ====================================================
 
 if __name__ == "__main__":
-    directory_path = str(sys.argv[1]) #C:\Users\leona\Documents\GitHub\DataIntegration\data\IMDbSakilaMovieLens
+    directory_path = str(sys.argv[1]) #C:\Users\leona\Documents\GitHub\DataIntegration\data\OC3
     
     
     # process = ["a) SchemasToGraph", "b.1) SignatureEncoding", "b.2) LinkabilityAssessor", "c) LinkabilityCorrelator", "d) SemanticMatcher"]
@@ -131,24 +134,21 @@ if __name__ == "__main__":
     print("Read successfully completed." + "\n" + process_line)
     
     print("b.1) SignatureEncoding" + "\n" + process_line)
-    df_graph['text_sequence'] = df_graph['text_sequence'].astype(str)
-    print("Default: Including entity serialization (e.g., " + df_graph.loc[2].text_sequence +")")
-    
-    if "instance_sequence" in df_graph:
-        df_graph['instance_sequence'] = df_graph['instance_sequence'].astype(str)
-        instance_serialization = input("Optional: Include instance serialization (e.g., " + df_graph.loc[2].instance_sequence +")? (y/n): ")
-        instance_sequence = "instance_sequence" if instance_serialization.lower() == 'y' else None
-    else:
-        instance_sequence = None
-
+    print("Default: Including entity serialization (e.g., " + str(df_graph.loc[2].text_sequence) +")")
+    instance_serialization = input("Optional: Include instance serialization (e.g., " + str(df_graph.loc[2].instance_sequence) +")? (y/n): ")
+    instance_sequence = "instance_sequence" if instance_serialization.lower() == 'y' else None
     entities = encode_signatures_from_df(df_graph, serialization="text_sequence", instance_serialization=instance_sequence)
     print("Process successfully completed." + "\n" + process_line)
 
     print("d) SemanticMatcher" + "\n" + process_line)
+    method_string = input("Specify matching method (SIM, CLUSTER, or LSH): ")
+    if method_string == "SIM":
+        df_graph_linkages = get_cartesian_linkages_similarity(df_graph, entities)
+    elif method_string in ("CLUSTER", "LSH"):
+        cardinality = input("Specify cardinality (as integer): ")
+        # tbd. extend cluster and lsh method
+        df_graph_linkages = get_cartesian_linkages_similarity(df_graph, entities)
     
-
-
-
     df_graph_linkages.to_csv(directory_path+"/linkages.csv", index=False)
     print("Exported file: " + directory_path+"/linkages.csv")
     print("Process successfully completed." + "\n" + process_line)

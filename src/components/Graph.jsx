@@ -76,7 +76,15 @@ const Graph = ({ svgRef, data, onNodesUpdate, onNodeClick,
 
  // Korrelationen aktualisieren 
   const updateCorrelationLinks = () => {
-    if (!correlationLinkGroupRef.current || !nodesRef.current || correlationData.length === 0) return;
+  
+    if (correlationData === "none"){
+      console.log("Korrelation Links entfernen");
+      const correlationLinkGroup = d3.select(correlationLinkGroupRef.current);
+      correlationLinkGroup.selectAll("*").remove();
+      return;
+    }
+
+  if (!correlationLinkGroupRef.current || !nodesRef.current || correlationData.length === 0) return;
 
   console.log("updateCorrelationLinks gestartet");
   const correlationLinkGroup = d3.select(correlationLinkGroupRef.current);

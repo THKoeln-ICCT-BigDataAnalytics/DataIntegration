@@ -22,11 +22,11 @@ import Button from 'react-bootstrap/Button';
       filename: "OC3_correlation.csv",
       uploadInputId: "upload_correlation",
     },
-    // {
-    //   url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/linkages.csv",
-    //   filename: "OC3_linkages.csv",
-    //   uploadInputId: "upload_linkages",
-    // },
+    {
+      url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3/linkages.csv",
+      filename: "OC3_linkages.csv",
+      uploadInputId: "upload_linkages",
+    },
     
   ];
 
@@ -48,7 +48,7 @@ import Button from 'react-bootstrap/Button';
     },
     {
       url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/linkages.csv",
-      filename: "OC3_linkages.csv",
+      filename: "OC3FO_linkages.csv",
       uploadInputId: "upload_linkages",
     },
     
@@ -70,11 +70,11 @@ import Button from 'react-bootstrap/Button';
       filename: "ISM_correlation.csv",
       uploadInputId: "upload_correlation",
     },
-    // {
-    //   url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/linkages.csv",
-    //   filename: "ISM_linkages.csv",
-    //   uploadInputId: "upload_linkages",
-    // },
+    {
+      url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/ISM/linkages.csv",
+      filename: "ISM_linkages.csv",
+      uploadInputId: "upload_linkages",
+    },
     
   ];
 
@@ -94,11 +94,11 @@ import Button from 'react-bootstrap/Button';
       filename: "ISMFO_correlation.csv",
       uploadInputId: "upload_correlation",
     },
-    // {
-    //   url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/OC3FO/linkages.csv",
-    //   filename: "ISMFO_linkages.csv",
-    //   uploadInputId: "upload_linkages",
-    // },
+    {
+      url: "https://raw.githubusercontent.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/refs/heads/main/data/ISMFO/linkages.csv",
+      filename: "ISMFO_linkages.csv",
+      uploadInputId: "upload_linkages",
+    },
     
   ];
 
@@ -150,31 +150,31 @@ const cellStyle = {
 const DatasetsPanel = () => {
   return (   
     <div>
-        <Tabs defaultActiveKey="load_schemas" id="data_tab" className="mb-3">
-            <Tab eventKey="load_schemas" title="Preload Schemas">
-                {/* <span style={{ fontSize: "12px", color: "#555" }}> */}
-                    <p style={{ fontSize: "12px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "15px auto" }}>
-                        ☑ Downloads and auto-uploads schema_graph.csv, collaborative_scoping.csv, correlation.csv, and linkages.csv.
-                    </p>
-                        
-                    {/* </span> */}
-
+        <Tabs defaultActiveKey="load_schemas" id="data_tab" className="mb-3" justify>
+            <Tab eventKey="contact" title="SCOPER" disabled>
+            </Tab>
+            
+            <Tab eventKey="load_schemas" title="Preload Schemas (DEMO)">
                     <Table striped bordered hover>
                         <thead>
                         <tr>
-                            <th>Domain</th>
-                            <th>Related Schemas</th>
-                            <th>Added Unrelated Schema: <a href="https://github.com/jolpica/jolpica-f1" target="_blank" rel="noreferrer"> Formula-One (jolpica-f1)</a> 
+                            <th><p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "5px auto" }}>Domain</p></th>
+                            <th><p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "5px auto" }}>Related Schemas</p></th>
+                            <th><p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "5px auto" }}>+Unlinkable Schema </p>
+                              <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "5px auto" }}> 
+                                <a href="https://github.com/jolpica/jolpica-f1" target="_blank" rel="noreferrer"> Formula-One (jolpica-f1)</a> </p>
                             </th>
                         </tr>
                         </thead>
                         <tbody>
                         <tr>
                             <td>
+                            <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "5px auto" }}>
                             Orders-Customers:{" "}
                             <a href="https://github.com/oracle-samples/db-sample-schemas" target="_blank" rel="noreferrer">CO (Oracle)</a>,{" "}
-                            <a href="https://www.mysqltutorial.org/getting-started-with-mysql/mysql-sample-database/" target="_blank" rel="noreferrer">classismodels (MySQL)</a>, 
+                            <a href="https://www.mysqltutorial.org/getting-started-with-mysql/mysql-sample-database/" target="_blank" rel="noreferrer">classismodels (MySQL)</a>, {" "}
                             <a href="https://developers.sap.com/tutorials/hxe-ua-dbfundamentals-sample-project..html" target="_blank" rel="noreferrer">Sample Project (SAP HANA Academy)</a>
+                            </p>
                             </td>
                             <td style={cellStyle}>
                                 <Button size="sm" onClick={() => downloadAndUpload(files_OC3)}>
@@ -189,10 +189,12 @@ const DatasetsPanel = () => {
                         </tr>
                         <tr>
                             <td>
+                            <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "5px auto" }}>
                             Films-Artists:{" "}
                             <a href="https://developer.imdb.com/non-commercial-datasets/" target="_blank" rel="noreferrer">IMDb</a>,{" "}
-                            <a href="https://dev.mysql.com/doc/sakila/en/sakila-installation.html" target="_blank" rel="noreferrer">Sakila (MySQL)</a>, 
+                            <a href="https://dev.mysql.com/doc/sakila/en/sakila-installation.html" target="_blank" rel="noreferrer">Sakila (MySQL)</a>, {" "} 
                             <a href="https://grouplens.org/datasets/movielens/" target="_blank" rel="noreferrer">MovieLens</a>
+                            </p> 
                             </td>
                             <td style={cellStyle}>
                                 <Button size="sm" onClick={() => downloadAndUpload(files_ISM)}>
@@ -209,9 +211,34 @@ const DatasetsPanel = () => {
                         </tr>
                         </tbody>
                     </Table>
+                    <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "5px auto" }}>
+                        ☑ Downloads and auto-imports a) schema_graph.csv, b) collaborative_scoping.csv, c) correlation.csv, and d) linkages.csv.
+                    </p>
             </Tab>
-            <Tab eventKey="import_schemas" title="Import Schemas">
-                Import your own Schemas (as .csv dumps) using the Schema Import Python Wizard! 
+            <Tab eventKey="import_schemas" title="Import Polystore">
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item">
+                     <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "3px auto" }}>
+                        #1 Download <a href="https://github.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/blob/main/python/Scoper.py" target="_blank">Scoper.py</a>
+                     </p>
+                  </li>
+                  <li class="list-group-item">
+                    <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "3px auto" }}>
+                        #2 Open your comand shell (e.g., <kbd>cmd.exe</kbd>)
+                     </p>
+                  </li>
+                  <li class="list-group-item">
+                     <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "3px auto" }}>
+                        #3 Run Scoper along with providing the Polystore path, e.g., "C:\...\polystore" containing schema folders with tables as .csv files.
+                      </p>
+                     <pre><code>python Scoper.py "polystore_path"</code> </pre>
+                  </li>
+                  <li class="list-group-item">
+                    <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "3px auto" }}>
+                        #4 Import a) schema_graph.csv, b) collaborative_scoping.csv, c) correlation.csv, and d) linkages.csv to explore your Polystore.
+                    </p> 
+                  </li>
+                </ul>
             </Tab>
         </Tabs>
 

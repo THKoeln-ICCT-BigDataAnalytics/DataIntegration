@@ -1,4 +1,5 @@
 import sys
+# a) SchemasToGraph
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,20 +7,21 @@ import itertools
 import os
 import time
 import ast
-#2. Schema Signature Encoding
-from sentence_transformers import SentenceTransformer 
-#3. Linkability Assessment with Collaborative Scoping
+# b.1) SignatureEncoding
+from sentence_transformers import SentenceTransformer, util
+# b.2) LinkabilityAssessor
 from sklearn.metrics import mean_squared_error
 import sklearn
 import sklearn.decomposition
+# c) LinkabilityCorrelator
+# d) SemanticMatcher
+from itertools import product
+
+#disable DNN message regarding floating numbers
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 
-# os.execl(sys.executable, sys.executable, *sys.argv)
-# taskkill /IM python.exe /F
-
-
-
-# ====================================================1. Schema Import====================================================
+# ====================================================a) SchemasToGraph====================================================
 class tabular_file:
   def __init__(self, id, name, source_name, df):
     self.id = id
@@ -48,7 +50,7 @@ def build_schema_graph(directory_path, schema_folders=None, extract_metadata=Tru
     for source_name in schema_folders:
         source_id = "entity_" + str(next(id_iter_graph))
         df_graph.loc[len(df_graph)] = {
-            "id": source_id, "type": "source", "schema": source_name, "name": source_name
+            "id": source_id, "type": "schema", "schema": source_name, "name": source_name
         }
         
         source_path = os.path.join(directory_path, source_name)
@@ -118,7 +120,7 @@ def build_schema_graph(directory_path, schema_folders=None, extract_metadata=Tru
 
                 df_graph.loc[len(df_graph)] = {
                     "id":              "entity_" + str(next(id_iter_graph)),
-                    "type":            "column",
+                    "type":            "attribute",
                     "parent_id":       table_id,
                     "schema":          source_name,
                     "name":            column,
@@ -133,7 +135,8 @@ def build_schema_graph(directory_path, schema_folders=None, extract_metadata=Tru
 
     return df_graph, files
 
-# ==============================================2. Schema Signature Encoding====================================================
+# ==============================================b.1) SignatureEncoding====================================================
+
 
 class Entity: #could be table or column
     def __init__(
@@ -201,16 +204,18 @@ def encode_signatures_from_df(df_graph, model_name='sentence-transformers/all-mp
 
     return entities;
 
-# ==============================================3. Linkability Assessment with Collaborative Scoping====================================================
+
+
+# ==============================================b.2) LinkabilityAssessor====================================================
 
 # Helper Functions
-def entity_collection_by_source(ce, source_name):
+def entity_collection_by_source(ce, schema_name):
     #returns all entities for matching source
-    return [entity for entity in ce if entity.schema == source_name]
+    return [entity for entity in ce if entity.schema == schema_name]
 
-def entity_collection_by_sources(ce, source_names):
+def entity_collection_by_sources(ce, schema_names):
     #returns all entities for matching sources
-    return [entity for entity in ce if entity.schema in source_names]
+    return [entity for entity in ce if entity.schema in schema_names]
 
 
 # PCA
@@ -302,18 +307,128 @@ def collaborative_scoping(signatures, df, model_degree_variance, threshold, agre
     return E_prime_agreed, df
 
 
-def collaborative_scoping_track(signatures, df, variant="text_sequence"):
+def collaborative_scoping_track(signatures, df_graph, variant="text_sequence"):
     p_list = np.arange(1,100,1)
     p_list =  [float("%.2f" % elem) for elem in p_list]
     v_list = list(reversed(p_list))
+    df_graph = df_graph[df_graph.type != "schema"].reset_index(drop=True)
     results = []
-    for v in v_list: #[99.0, 25.0]:
-        df_performance = collaborative_scoping(signatures, df, v, "max", print_params=False, variant=variant)[1].copy()
+    for v in v_list:
+        df_performance = collaborative_scoping(signatures, df_graph, v, "max", print_params=False, variant=variant)[1].copy()
         results.append(df_performance)
+        print("Computation completed for v = " + str(round(v*0.01, 2)))
     return pd.concat(results, ignore_index=True, sort=False)
 
 
 
+# ==============================================c). LinkabilityCorrelator====================================================
+
+
+def compute_correlation(df_collaborative_scoping):
+    # CSV laden
+
+    schemas = df_collaborative_scoping.schema.unique()
+    schemas_agree = [str(schema) + "_agree" for schema in schemas] 
+    dict_agree_schemas = dict(zip(schemas_agree, schemas))
+    v_values = sorted(df_collaborative_scoping["v"].dropna().unique(), reverse=True)
+
+    results = []
+
+    for v in v_values:
+        df_collaborative_scoping_v = df_collaborative_scoping[df_collaborative_scoping["v"] == v]
+
+        for src, tgt in itertools.combinations(schemas_agree, 2):
+            entry = {
+                "v": v,
+                "source": dict_agree_schemas[src],
+                "target": dict_agree_schemas[tgt]
+            }
+
+            # all: alle schema elemente unabhängig vom Ursprung
+            corr_all = df_collaborative_scoping_v[schemas_agree].corr().loc[src, tgt]
+            entry["all"] = corr_all
+
+            # all_true correlation: alle schema elemente unabhängig vom Ursprung, wo aber mindestens src oder tgt "true" vorhersagen
+            df_collaborative_scoping_v_true  = df_collaborative_scoping_v[(df_collaborative_scoping_v[src]==True) | (df_collaborative_scoping_v[tgt]==True)]
+            corr_all_true_pred = df_collaborative_scoping_v_true[schemas_agree].corr().loc[src, tgt]
+            entry["all_true"] = corr_all_true_pred
+
+            # filtered correlation: nur schema elemente, welche nicht von src oder tgt herkommen
+            df_collaborative_scoping_v_filtered = df_collaborative_scoping_v[(df_collaborative_scoping_v.schema != dict_agree_schemas[src]) & (df_collaborative_scoping_v.schema != dict_agree_schemas[tgt])]
+            corr_filtered = df_collaborative_scoping_v_filtered[schemas_agree].corr().loc[src, tgt]
+            entry["filtered"] = corr_filtered
+
+            # filtered_true correlation: nur schema elemente, welche nicht von src oder tgt herkommen, wo aber mindestens src oder tgt "true" vorhersagen
+            df_collaborative_scoping_v_filtered_true_pred  = df_collaborative_scoping_v_filtered[(df_collaborative_scoping_v_filtered[src]==True) | (df_collaborative_scoping_v_filtered[tgt]==True)]
+            corr_filtered_true_pred = df_collaborative_scoping_v_filtered_true_pred[schemas_agree].corr().loc[src, tgt]
+            entry["filtered_true"] = corr_filtered_true_pred
+
+            results.append(entry)
+    
+    # Alle Korrelationen
+    return pd.DataFrame(results)
+
+
+def plot_correlation(df_correlation, directory_path):
+    categories = ["all", "all_true", "filtered", "filtered_true"]
+   
+    # Für jede Kategorie ein eigenes Diagramm
+    for cat in categories:
+        plt.figure(figsize=(9, 9))
+        plt.rcParams.update({'font.size': 16})
+        # Spalte in numerisch umwandeln (damit Strings oder "-" ignoriert werden)
+        df_correlation[cat] = pd.to_numeric(df_correlation[cat], errors="coerce")
+
+        df_correlation.v = df_correlation.v * 0.01
+
+        # Jede Kombination von source/target bekommt eine eigene Linie
+        for (src, tgt), group in df_correlation.groupby(["source", "target"]):
+            sub = group.dropna(subset=[cat])
+            sub = sub.sort_values("v", ascending=True)  # normale Reihenfolge
+
+            linestyle = "--" if "FORMULA" in str(src) or "FORMULA" in str(tgt) else "-"
+
+            plt.plot(sub["v"], sub[cat], label=f"{src}-{tgt}", linestyle = linestyle, linewidth=3)
+
+        #plt.title(f"Korrelation ({cat})")
+        plt.xlabel("v")
+        plt.ylabel("$r$ (pearson)")
+        plt.ylim(-1, 1)
+        plt.legend()
+        plt.grid(True)
+        plt.gca().invert_xaxis()  # Dreht die X-Achse: 99 links, 1 rechts
+        # plt.show()
+        plt.savefig(directory_path + "/" + cat+".png")
+        print("Exported file: " + directory_path+"/"+cat+".png")
+
+
+# ==============================================d) SemanticMatcher ====================================================
+
+
+# Helper Functions
+def get_entity_by_entity_id(entities, entity_id):
+  for entity in entities:
+    if entity.id == entity_id:
+      return entity
+    
+# Cartesian size between schemas 
+# Limited to (a, b) linkages based on schemas (SCHEMA1>SCHEMA2>...) --> no (b, a) linkages
+def get_cartesian_linkages_similarity(df, entities, variant="text_sequence"):
+    schema_key_ignore = [] 
+    cartesian_linkages_similarity = []
+    for current_schema_name in list(df.schema.unique()):
+        schema_key_ignore.append(current_schema_name)
+        current_schema = df[df.schema == current_schema_name].reset_index(drop=True).copy()
+        other_schemas = df[~df.schema.isin(schema_key_ignore)].reset_index(drop=True).copy()
+        schema_linkages_tables = list(product(current_schema[current_schema.type == "table"].id, other_schemas[other_schemas.type == "table"].id))
+        schema_linkages_attributes = list(product(current_schema[current_schema.type == "attribute"].id, other_schemas[other_schemas.type == "attribute"].id))
+
+        for linkage in schema_linkages_tables + schema_linkages_attributes:
+            signature_a = getattr(get_entity_by_entity_id(entities, linkage[0]), variant)
+            signature_b = getattr(get_entity_by_entity_id(entities, linkage[1]), variant)
+            cartesian_linkages_similarity.append((linkage[0], linkage[1], float(util.cos_sim(signature_a, signature_b))))
+
+    return pd.DataFrame(data=cartesian_linkages_similarity, columns=["entity_a_id",	"entity_b_id", "cosine_similarity"])
 
 # ============================================== MAIN ====================================================
 
@@ -332,9 +447,9 @@ if __name__ == "__main__":
     df_graph, files = build_schema_graph(directory_path = directory_path, schema_folders=schema_folders) 
     df_graph.to_csv(directory_path+"/schema_graph.csv", index=False)
     print("Schema Graph Metadata:")
-    print("# Schemas: "+ str(len(df_graph[df_graph.type=="source"])))
+    print("# Schemas: "+ str(len(df_graph[df_graph.type=="schema"])))
     print("# Tables: "+ str(len(df_graph[df_graph.type=="table"])))
-    print("# Columns: "+ str(len(df_graph[df_graph.type=="column"])))
+    print("# Attributes: "+ str(len(df_graph[df_graph.type=="attribute"])))
     print("Path: " + directory_path + "/schema_graph.csv")
     print("Successfully completion." + "\n" + process_line)
 
@@ -347,5 +462,27 @@ if __name__ == "__main__":
 
     print(process[2] + "\n" + process_line)
     df_graph_collaborative_scoping = collaborative_scoping_track(entities, df_graph)
-    df_graph_collaborative_scoping.to_csv(directory_path+"/schema_graph_collaborative_scoping.csv", index=False)
-    print("Successfully completion." + "\n" + process_line)
+    df_graph_collaborative_scoping.to_csv(directory_path+"/collaborative_scoping.csv", index=False)
+    print("Exported file: " + directory_path+"/collaborative_scoping.csv")
+    print("Process successfully completed." + "\n" + process_line)
+
+    print(process[3] + "\n" + process_line)
+    df_correlation = compute_correlation(df_graph_collaborative_scoping)
+    df_correlation.sort_values(by=["v", "source", "target"], inplace=True)
+    df_correlation.to_csv(directory_path+"/correlation.csv", index=False)
+    print("Exported file: " + directory_path+"/correlation.csv")
+    plot_correlation(df_correlation, directory_path)
+    print("Process successfully completed." + "\n" + process_line)
+
+    print(process[4] + "\n" + process_line)
+    method_string = input("Specify matching method (SIM, CLUSTER, or LSH): ")
+    if method_string == "SIM":
+        df_graph_linkages = get_cartesian_linkages_similarity(df_graph, entities)
+    elif method_string in ("CLUSTER", "LSH"):
+        cardinality = input("Specify cardinality (as integer): ")
+        # tbd. extend cluster and lsh method
+        df_graph_linkages = get_cartesian_linkages_similarity(df_graph, entities)
+    
+    df_graph_linkages.to_csv(directory_path+"/linkages.csv", index=False)
+    print("Exported file: " + directory_path+"/linkages.csv")
+    print("Process successfully completed." + "\n" + process_line)

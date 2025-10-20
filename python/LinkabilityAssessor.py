@@ -1,20 +1,23 @@
-
 import sys
+# a) SchemasToGraph
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import itertools
 import os
-import ast
-#1. Schema Signature Encoding
-from sentence_transformers import SentenceTransformer, util
 import time
-#2. Linkability Assessment with Collaborative Scoping
+import ast
+# b.1) SignatureEncoding
+from sentence_transformers import SentenceTransformer, util
+# b.2) LinkabilityAssessor
 from sklearn.metrics import mean_squared_error
 import sklearn
 import sklearn.decomposition
+# c) LinkabilityCorrelator
+# d) SemanticMatcher
+from itertools import product
 
-# ==============================================1. Schema Signature Encoding====================================================
+# ==============================================b.1) SignatureEncoding====================================================
 
 class Entity: #could be table or column
     def __init__(
@@ -82,7 +85,7 @@ def encode_signatures_from_df(df_graph, model_name='sentence-transformers/all-mp
 
     return entities;
 
-# ==============================================2. Linkability Assessment with Collaborative Scoping====================================================
+# ==============================================b.2) LinkabilityAssessor====================================================
 
 # Helper Functions
 def entity_collection_by_source(ce, schema_name):
@@ -192,7 +195,7 @@ def collaborative_scoping_track(signatures, df_graph, variant="text_sequence"):
     for v in v_list:
         df_performance = collaborative_scoping(signatures, df_graph, v, "max", print_params=False, variant=variant)[1].copy()
         results.append(df_performance)
-        print("Computation completed for v = " + str(v))
+        print("Computation completed for v = " + str(round(v*0.01, 2)))
     return pd.concat(results, ignore_index=True, sort=False)
 
 # ============================================== MAIN ====================================================

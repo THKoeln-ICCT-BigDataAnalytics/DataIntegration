@@ -1,13 +1,26 @@
 import sys
+# a) SchemasToGraph
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import itertools
 import os
+import time
 import ast
+# b.1) SignatureEncoding
+from sentence_transformers import SentenceTransformer, util
+# b.2) LinkabilityAssessor
+from sklearn.metrics import mean_squared_error
+import sklearn
+import sklearn.decomposition
+# c) LinkabilityCorrelator
+# d) SemanticMatcher
+from itertools import product
+
+
+# ==============================================c) LinkabilityCorrelator====================================================
 
 def compute_correlation(df_collaborative_scoping):
-    # CSV laden
 
     schemas = df_collaborative_scoping.schema.unique()
     schemas_agree = [str(schema) + "_agree" for schema in schemas] 
@@ -47,7 +60,6 @@ def compute_correlation(df_collaborative_scoping):
 
             results.append(entry)
     
-    # Alle Korrelationen
     return pd.DataFrame(results)
 
 
@@ -56,10 +68,12 @@ def plot_correlation(df_correlation, directory_path):
    
     # Für jede Kategorie ein eigenes Diagramm
     for cat in categories:
-        plt.figure(figsize=(12, 12))
-
+        plt.figure(figsize=(9, 9))
+        plt.rcParams.update({'font.size': 16})
         # Spalte in numerisch umwandeln (damit Strings oder "-" ignoriert werden)
         df_correlation[cat] = pd.to_numeric(df_correlation[cat], errors="coerce")
+
+        df_correlation.v = df_correlation.v * 0.01
 
         # Jede Kombination von source/target bekommt eine eigene Linie
         for (src, tgt), group in df_correlation.groupby(["source", "target"]):
@@ -68,9 +82,9 @@ def plot_correlation(df_correlation, directory_path):
 
             linestyle = "--" if "FORMULA" in str(src) or "FORMULA" in str(tgt) else "-"
 
-            plt.plot(sub["v"], sub[cat], label=f"{src}-{tgt}", linestyle = linestyle)
+            plt.plot(sub["v"], sub[cat], label=f"{src}-{tgt}", linestyle = linestyle, linewidth=3)
 
-        plt.title(f"Korrelation ({cat})")
+        #plt.title(f"Korrelation ({cat})")
         plt.xlabel("v")
         plt.ylabel("$r$ (pearson)")
         plt.ylim(-1, 1)
@@ -81,6 +95,7 @@ def plot_correlation(df_correlation, directory_path):
         plt.savefig(directory_path + "/" + cat+".png")
         print("Exported file: " + directory_path+"/"+cat+".png")
 
+# ============================================== MAIN ====================================================
 
 if __name__ == "__main__":
     directory_path = str(sys.argv[1]) #C:\Users\leona\Documents\GitHub\DataIntegration\data\IMDbSakilaMovieLens

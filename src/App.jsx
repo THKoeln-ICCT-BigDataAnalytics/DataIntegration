@@ -96,7 +96,7 @@ function App() {
               boxShadow: "0 2px 8px rgba(44,62,80,.06)",
               textAlign: "center"
             }}>
-            <h5>Import and Filter the Polystore Graph</h5>
+            <h5>Explore and Reduce your Polystore</h5>
 
             
             <table style={{ 
@@ -108,7 +108,8 @@ function App() {
             }}>
               <tbody>
                 <tr>
-                  <td style={{ fontWeight: "bold", paddingRight: "12px" }}>SchemasToGraph</td>
+                  <td style={{color: "#555", fontFamily: "Roboto Mono, monospace", paddingRight: "5px" }}>a)SchemasToGraph</td>
+
                   <td><CsvUploader onDataLoaded={setCsvData} /></td>
                   <td>
                      <FilterSchemas
@@ -119,7 +120,7 @@ function App() {
                   </td>
                 </tr>
                 <tr>
-                  <td style={{ fontWeight: "bold", paddingRight: "12px" }}>LinkabilityAssessor</td>
+                  <td style={{color: "#555", fontFamily: "Roboto Mono, monospace", paddingRight: "5px" }}>b)LinkabilityAssessor</td>
                   <td>
                     <ValidityCheckerButton 
                       onDataLoaded={data => data.length > 0 && setValidityData(data)} 
@@ -142,7 +143,7 @@ function App() {
                   </td>
                 </tr>
                 <tr>
-                  <td style={{ fontWeight: "bold", paddingRight: "12px" }}>LinkabilityCorrelator</td>
+                  <td style={{color: "#555", fontFamily: "Roboto Mono, monospace", paddingRight: "5px" }}>c)LinkabilityCorrelator</td>
                   <td>
                     <CorrelationLinkButton onDataLoaded={data => data.length > 0 && setCorrelationData(data)} />
                   </td>
@@ -151,7 +152,7 @@ function App() {
                   </td>
                 </tr>
                 <tr>
-                  <td style={{ fontWeight: "bold", paddingRight: "12px" }}>SemanticMatcher</td>
+                  <td style={{color: "#555", fontFamily: "Roboto Mono, monospace", paddingRight: "5px" }}>d)SemanticMatcher</td>
                   <td>
                     <LinkDataButton 
                       onDataLoaded={data => data.length > 0 && setLinkData(data)} 

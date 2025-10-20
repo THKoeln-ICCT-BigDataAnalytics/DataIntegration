@@ -1,44 +1,56 @@
 import * as d3 from "d3";
 
+// State to track the next index for randomColors
+// Using 'let' so it can be updated across function calls
+let colorIndex = 0;
+
+// Existing cache and fixed colors remain outside the function
 const colorCache = new Map();
 
 // Feste Farben für bekannte Schemas
 const fixedColors = new Map([
-  ["OC_ORACLE", "rgb(255, 215, 0)"],  // Gelb 
-  ["OC_MYSQL", "rgb(255, 87, 51)"],   // Orange/Rot
-  ["OC_SAP", "rgb(75, 181, 67)"],     // Grün
-  ["FORMULA", "rgb(0, 123, 255)"],    // Blau
+    ["OC_ORACLE", "rgb(255, 215, 0)"],  
+    ["OC_MYSQL", "rgb(255, 87, 51)"],    
+    ["OC_SAP", "rgb(75, 181, 67)"],   
+    ["FORMULA", "rgb(0, 123, 255)"],     
 ]);
 
 
+const availableColors = [
+    "rgb(255, 215, 0)", // Yellow 
+    "rgb(255, 87, 51)",  // Orange/Red 
+    "rgb(75, 181, 67)",  // Green
+    "rgb(0, 123, 255)",  // Blue 
+    "rgba(255, 0, 247, 1)", // Pink/Magenta
+    "rgba(0, 247, 255, 1)", // Cyan
+    "rgba(255, 140, 0, 1)", // Dark Orange
+    "rgba(141, 18, 40, 1)", // Dark Red/Maroon
+];
+
 const getColorForSchema = (schema) => {
-  if (!schema) return "gray";
+    if (!schema) return "gray";
 
-  // Prüfe, ob eine feste Farbe existiert
-  if (fixedColors.has(schema)) {
-    const color = fixedColors.get(schema);
-    console.log("Eingabe: ", schema, " => Feste Farbe: ", color);
+    // 1. Check for fixed color
+    if (fixedColors.has(schema)) {
+        const color = fixedColors.get(schema);
+        return color;
+    }
+
+    // 2. Check cache for unknown schemas
+    if (colorCache.has(schema)) {
+        return colorCache.get(schema);
+    }
+
+    // 3. Assign and cache a new color using the iterator
+    const color = availableColors[colorIndex % availableColors.length];
+    
+    // Update the iterator for the next assignment
+    // Use modulo operator (%) to cycle through the availableColors array
+    colorIndex = (colorIndex + 1) % availableColors.length;
+
+    colorCache.set(schema, color);
+
     return color;
-  }
-
-  // Fallback: Hash-Methode für unbekannte Schemas
-  if (colorCache.has(schema)) {
-    return colorCache.get(schema);
-  }
-
-  let hash = 0;
-  for (let i = 0; i < schema.length; i++) {
-    hash = ((hash << 5) - hash) + schema.charCodeAt(i);
-    hash |= 0;
-  }
-  hash = hash * 31; // Verstärkt die Unterschiede
-
-  const colorScale = d3.scaleSequential(d3.interpolateTurbo).domain([0, 1000]); //interpolateTurbo bietet eine bessere Streuung und weniger Dominanz einzelner Farbtöne wie Grün
-  let color = colorScale((hash & 0x7FFFFFFF) % 1000);
-
-  colorCache.set(schema, color);
-  console.log("Eingabe: ", schema, " => Hash: ", hash, " => Farbwert: ", color);
-  return color;
 };
 
 export default getColorForSchema;
