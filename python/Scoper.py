@@ -112,6 +112,8 @@ def build_schema_graph(directory_path, schema_folders=None, extract_metadata=Tru
                     sampled_values = [str(row[column])for _, row in sampled_rows.iterrows()]
                     attribute_instances = ", ".join(map(str, sampled_values)).replace('\n', ' ')
                     column_datatype = datatype_row[column]
+                    if column_datatype == "object":
+                        column_datatype = "varchar2"                        
                     column_constraints = constraint_row[column]
                 else:
                     attribute_instances = ""
@@ -128,7 +130,7 @@ def build_schema_graph(directory_path, schema_folders=None, extract_metadata=Tru
                     "datatype":        column_datatype,
                     "constraints":     column_constraints,
                     "instances":       attribute_instances,
-                    "text_sequence":   f"{column} {table_name}",
+                    "text_sequence":   str(column) + " " + str(table_name) + " " + str(column_datatype),
                     "instance_sequence": f"{column}: {{{attribute_instances}}}"
                 }
         print(f"Schema Import: {source_name} completed.")
@@ -178,7 +180,7 @@ def encode_signatures_from_df(df_graph, model_name='sentence-transformers/all-mp
     entities = []
     model = SentenceTransformer(model_name)
 
-    df_graph = df_graph[df_graph.type != "source"].reset_index(drop=True)
+    df_graph = df_graph[df_graph.type != "schema"].reset_index(drop=True)
         
     st = time.time()
     text_sequence = model.encode(df_graph[serialization].values)
@@ -316,7 +318,9 @@ def collaborative_scoping_track(signatures, df_graph, variant="text_sequence"):
     for v in v_list:
         df_performance = collaborative_scoping(signatures, df_graph, v, "max", print_params=False, variant=variant)[1].copy()
         results.append(df_performance)
-        print("Computation completed for v = " + str(round(v*0.01, 2)))
+        if(int(v)%10 == 0):
+            v_dec = round(v*0.01, 2)
+            print("Computation completed for v = " + str(round(v_dec+0.09,2)) + ".." + str(v_dec))
     return pd.concat(results, ignore_index=True, sort=False)
 
 
@@ -370,7 +374,8 @@ def compute_correlation(df_collaborative_scoping):
 
 
 def plot_correlation(df_correlation, directory_path):
-    categories = ["all", "all_true", "filtered", "filtered_true"]
+    # categories = ["all", "all_true", "filtered", "filtered_true"]
+    categories = ["all", "filtered"]
    
     # Für jede Kategorie ein eigenes Diagramm
     for cat in categories:
@@ -445,7 +450,7 @@ if __name__ == "__main__":
     schema_folders = None
     
     process = ["a) SchemasToGraph", "b.1) SignatureEncoding", "b.2) LinkabilityAssessor", "c) LinkabilityCorrelator", "d) SemanticMatcher"]
-    process_line ="============================================================================================="
+    process_line ="========================================================================================================="
 
     print(process[0] + "\n" + process_line)
     df_graph, files = build_schema_graph(directory_path = directory_path, schema_folders=schema_folders) 
@@ -458,6 +463,9 @@ if __name__ == "__main__":
     print("Successfully completion." + "\n" + process_line)
 
     print(process[1] + "\n" + process_line)
+    # df_graph = pd.read_csv(directory_path+"/schema_graph.csv")
+    df_graph['text_sequence'] = df_graph['text_sequence'].astype(str)
+    df_graph['instance_sequence'] = df_graph['instance_sequence'].astype(str)
     print("Default: Including entity serialization (e.g., " + df_graph.loc[2].text_sequence +")")
     instance_serialization = input("Optional: Include instance serialization (e.g., " + df_graph.loc[2].instance_sequence +")? (y/n): ")
     instance_sequence = "instance_sequence" if instance_serialization.lower() == 'y' else None

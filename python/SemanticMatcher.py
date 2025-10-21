@@ -64,9 +64,11 @@ def encode_signatures_from_df(df_graph, model_name='sentence-transformers/all-mp
     df_graph = df_graph[df_graph.type != "schema"].reset_index(drop=True)
         
     st = time.time()
+    df_graph[serialization] = df_graph[serialization].astype(str) 
     text_sequence = model.encode(df_graph[serialization].values)
 
     if instance_serialization:
+        df_graph[instance_serialization] = df_graph[instance_serialization].astype(str) 
         instance_sequence = model.encode(df_graph[instance_serialization].values)
         text_sequence = np.concatenate((text_sequence, instance_sequence), axis=1)
     et = time.time()
@@ -86,6 +88,7 @@ def encode_signatures_from_df(df_graph, model_name='sentence-transformers/all-mp
         entities.append(entity)
 
     return entities;
+
 
 # ==============================================d) SemanticMatcher ====================================================
 

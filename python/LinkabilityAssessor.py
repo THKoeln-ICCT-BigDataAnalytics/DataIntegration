@@ -85,6 +85,7 @@ def encode_signatures_from_df(df_graph, model_name='sentence-transformers/all-mp
 
     return entities;
 
+
 # ==============================================b.2) LinkabilityAssessor====================================================
 
 # Helper Functions
@@ -195,7 +196,9 @@ def collaborative_scoping_track(signatures, df_graph, variant="text_sequence"):
     for v in v_list:
         df_performance = collaborative_scoping(signatures, df_graph, v, "max", print_params=False, variant=variant)[1].copy()
         results.append(df_performance)
-        print("Computation completed for v = " + str(round(v*0.01, 2)))
+        if(int(v)%10 == 0):
+            v_dec = round(v*0.01, 2)
+            print("Computation completed for v = " + str(round(v_dec+0.09,2)) + ".." + str(v_dec))
     return pd.concat(results, ignore_index=True, sort=False)
 
 # ============================================== MAIN ====================================================
