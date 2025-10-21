@@ -48,7 +48,7 @@ const ValidityCheckerButton = ({ onDataLoaded }) => {
 
   return (
     <div>
-      <Form.Group controlId="upload_collaborative_scoping" className="mb-3">
+      <Form.Group controlId="upload_collaborative_scoping" className="mb-2">
         <Form.Control type="file" onChange={handleFileUpload} size="sm"/>
       </Form.Group>
     </div>

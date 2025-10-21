@@ -72,7 +72,7 @@ const LinkDataButton = ({ onDataLoaded }) => {
     // </div>
 
     <div>
-      <Form.Group controlId="upload_linkages" className="mb-3">
+      <Form.Group controlId="upload_linkages" className="mb-2">
         <Form.Control type="file" onChange={handleFileUpload} size="sm"/>
       </Form.Group>
     </div>

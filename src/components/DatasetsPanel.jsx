@@ -160,9 +160,9 @@ const DatasetsPanel = () => {
                         <tr>
                             <th><p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "5px auto" }}>Domain</p></th>
                             <th><p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "5px auto" }}>Related Schemas</p></th>
-                            <th><p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "5px auto" }}>+Unlinkable Schema </p>
+                            <th><p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "5px auto" }}>+Irrelevant</p>
                               <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "5px auto" }}> 
-                                <a href="https://github.com/jolpica/jolpica-f1" target="_blank" rel="noreferrer"> Formula-One (jolpica-f1)</a> </p>
+                                <a href="https://github.com/jolpica/jolpica-f1" target="_blank" rel="noreferrer"> Formula-One</a> </p>
                             </th>
                         </tr>
                         </thead>
@@ -212,30 +212,30 @@ const DatasetsPanel = () => {
                         </tbody>
                     </Table>
                     <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "5px auto" }}>
-                        ☑ Downloads and auto-imports a) schema_graph.csv, b) collaborative_scoping.csv, c) correlation.csv, and d) linkages.csv.
+                        ☑ Auto-imports a) schema_graph.csv, b) collaborative_scoping.csv, c) correlation.csv, and d) linkages.csv.
                     </p>
             </Tab>
-            <Tab eventKey="import_schemas" title="Import Polystore">
+            <Tab eventKey="import_schemas" title="Import Schemas">
                 <ul class="list-group list-group-flush">
                   <li class="list-group-item">
                      <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "3px auto" }}>
-                        #1 Download <a href="https://github.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/blob/main/python/Scoper.py" target="_blank">Scoper.py</a>
+                        #1 Download <a href="https://github.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/blob/main/python/Scoper.py" target="_blank">Scoper.py</a> and navigate to its folder in your comand shell (e.g., <kbd>cmd.exe</kbd>).
                      </p>
                   </li>
-                  <li class="list-group-item">
+                  {/* <li class="list-group-item">
                     <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "3px auto" }}>
                         #2 Open your comand shell (e.g., <kbd>cmd.exe</kbd>)
                      </p>
-                  </li>
+                  </li> */}
                   <li class="list-group-item">
                      <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "3px auto" }}>
-                        #3 Run Scoper along with providing the Polystore path, e.g., "C:\...\polystore" containing schema folders with tables as .csv files.
+                        #2 Run Scoper along with the Polystore path (e.g., "C:\...\polystore") containing named schema folders with tables as .csv files.
                       </p>
-                     <pre><code>python Scoper.py "polystore_path"</code> </pre>
+                     <pre><code>python Scoper.py "C:\...\polystore"</code> </pre>
                   </li>
                   <li class="list-group-item">
                     <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "3px auto" }}>
-                        #4 Import a) schema_graph.csv, b) collaborative_scoping.csv, c) correlation.csv, and d) linkages.csv to explore your Polystore.
+                        #3 Import a) schema_graph.csv, b) collaborative_scoping.csv, c) correlation.csv, and d) linkages.csv to explore your Polystore.
                     </p> 
                   </li>
                 </ul>

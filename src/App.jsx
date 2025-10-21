@@ -83,12 +83,12 @@ function App() {
       {/*  mt-5 */}
       <div className="container-fluid my-4" style={{ minHeight: "100vh", background: "#f8f9fa" }}> 
         <div className="row">
-              <div className="col-xl-7 mb-3">
+              <div className="col-xl-7 mb-2">
                 <DatasetsPanel/>
               </div>          
           
           {/* Second Column: import_data */}
-          <div className="col-xl-5 mb-3" id="import_data">
+          <div className="col-xl-5 mb-2" id="import_data">
             <div style={{
               padding: "12px 20px",
               background: "#ecf0f1",
@@ -96,7 +96,7 @@ function App() {
               boxShadow: "0 2px 8px rgba(44,62,80,.06)",
               textAlign: "center"
             }}>
-            <h5>Explore and Reduce your Polystore</h5>
+            <h5>Explore and Filter your Polystore</h5>
 
             
             <table style={{ 

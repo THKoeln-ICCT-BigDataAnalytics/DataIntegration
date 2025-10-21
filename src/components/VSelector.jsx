@@ -64,7 +64,7 @@ const VSelector = ({ vValue, setVValue, validityData, graphNodes = [], refreshGr
           justifyContent: "flex-end", // Align items to the right horizontally
           gap: "5px"            // optional spacing between items
         }}>
-      <label htmlFor="vRange"><i>Model Variance</i></label>
+      <label htmlFor="vRange"><i>Global Variance</i></label>
       <input
         type="range"
         id="vRange"
