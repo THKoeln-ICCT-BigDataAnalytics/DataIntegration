@@ -141,8 +141,8 @@ if __name__ == "__main__":
     print("Read successfully completed." + "\n" + process_line)
     
     print("b.1) SignatureEncoding" + "\n" + process_line)
-    print("Default: Including entity serialization (e.g., " + str(df_graph.loc[2].text_sequence) +")")
-    instance_serialization = input("Optional: Include instance serialization (e.g., " + str(df_graph.loc[2].instance_sequence) +")? (y/n): ")
+    print("Default: Including schema_serialization (e.g., " + str(df_graph.loc[2].text_sequence) +")")
+    instance_serialization = input("Optional: Include instance_serialization (e.g., " + str(df_graph.loc[2].instance_sequence) +")? (y/n): ")
     instance_sequence = "instance_sequence" if instance_serialization.lower() == 'y' else None
     entities = encode_signatures_from_df(df_graph, serialization="text_sequence", instance_serialization=instance_sequence)
     print("Process successfully completed." + "\n" + process_line)

@@ -7,7 +7,7 @@ import itertools
 import os
 import time
 import ast
-# b.1) SignatureEncoding
+# b.1) Serialization+Embedding
 from sentence_transformers import SentenceTransformer, util
 # b.2) LinkabilityAssessor
 from sklearn.metrics import mean_squared_error
@@ -30,6 +30,7 @@ class tabular_file:
     self.df = df
 
 def build_schema_graph(directory_path, schema_folders=None, extract_metadata=True, metadata_headers=False):
+    st = time.time()
     column_names = [
         "id", "type", "parent_id", "schema", "name", "parent_name",
         "datatype", "constraints", "instances", "description", "text_sequence", "instance_sequence", "dataframe"
@@ -134,10 +135,13 @@ def build_schema_graph(directory_path, schema_folders=None, extract_metadata=Tru
                     "instance_sequence": f"{column}: {{{attribute_instances}}}"
                 }
         print(f"Schema Import: {source_name} completed.")
+                
+    et = time.time()
+    print("Total elapsed time: " + str(round(et - st, 2)) + " seconds.")
 
     return df_graph, files
 
-# ==============================================b.1) SignatureEncoding====================================================
+# ==============================================b.1) Serialization+Embedding====================================================
 
 
 class Entity: #could be table or column
@@ -190,7 +194,7 @@ def encode_signatures_from_df(df_graph, model_name='sentence-transformers/all-mp
         text_sequence = np.concatenate((text_sequence, instance_sequence), axis=1)
     et = time.time()
     
-    print("Elapsed time for encoding signatures:" + str(et - st))
+    print("Total elapsed time: " + str(round(et - st, 2)) + " seconds.")
 
     for index, row in df_graph.reset_index(drop=True).iterrows():
         entity = Entity(
@@ -315,12 +319,18 @@ def collaborative_scoping_track(signatures, df_graph, variant="text_sequence"):
     v_list = list(reversed(p_list))
     df_graph = df_graph[df_graph.type != "schema"].reset_index(drop=True)
     results = []
+    st = time.time()
+    
     for v in v_list:
         df_performance = collaborative_scoping(signatures, df_graph, v, "max", print_params=False, variant=variant)[1].copy()
         results.append(df_performance)
         if(int(v)%10 == 0):
             v_dec = round(v*0.01, 2)
             print("Computation completed for v = " + str(round(v_dec+0.09,2)) + ".." + str(v_dec))
+
+    et = time.time()
+    print("Total elapsed time: " + str(round(et - st, 2)) + " seconds.")
+    
     return pd.concat(results, ignore_index=True, sort=False)
 
 
@@ -329,6 +339,8 @@ def collaborative_scoping_track(signatures, df_graph, variant="text_sequence"):
 
 
 def compute_correlation(df_collaborative_scoping):
+    st = time.time()
+
     # CSV laden
 
     schemas = df_collaborative_scoping.schema.unique()
@@ -369,6 +381,8 @@ def compute_correlation(df_collaborative_scoping):
 
             results.append(entry)
     
+    et = time.time()
+    print("Total elapsed time: " + str(round(et - st, 2)) + " seconds.")
     # Alle Korrelationen
     return pd.DataFrame(results)
 
@@ -376,15 +390,13 @@ def compute_correlation(df_collaborative_scoping):
 def plot_correlation(df_correlation, directory_path):
     # categories = ["all", "all_true", "filtered", "filtered_true"]
     categories = ["all", "filtered"]
-   
+    df_correlation.v = df_correlation.v * 0.01
     # Für jede Kategorie ein eigenes Diagramm
     for cat in categories:
         plt.figure(figsize=(9, 9))
         plt.rcParams.update({'font.size': 16})
         # Spalte in numerisch umwandeln (damit Strings oder "-" ignoriert werden)
         df_correlation[cat] = pd.to_numeric(df_correlation[cat], errors="coerce")
-
-        df_correlation.v = df_correlation.v * 0.01
 
         # Jede Kombination von source/target bekommt eine eigene Linie
         for (src, tgt), group in df_correlation.groupby(["source", "target"]):
@@ -419,6 +431,7 @@ def get_entity_by_entity_id(entities, entity_id):
 # Cartesian size between schemas 
 # Limited to (a, b) linkages based on schemas (SCHEMA1>SCHEMA2>...) --> no (b, a) linkages
 def get_cartesian_linkages_similarity(df, entities, variant="text_sequence"):
+    st = time.time()
     node_type_attribute = "attribute"
     if "column" in df.type.unique():
         node_type_attribute = "column"
@@ -437,19 +450,25 @@ def get_cartesian_linkages_similarity(df, entities, variant="text_sequence"):
             signature_b = getattr(get_entity_by_entity_id(entities, linkage[1]), variant)
             cartesian_linkages_similarity.append((linkage[0], linkage[1], float(util.cos_sim(signature_a, signature_b))))
 
+    et = time.time()
+    print("Total elapsed time: " + str(round(et - st, 2)) + " seconds.")
     return pd.DataFrame(data=cartesian_linkages_similarity, columns=["entity_a_id",	"entity_b_id", "cosine_similarity"])
 
 # ============================================== MAIN ====================================================
 
 if __name__ == "__main__":
+    #DEMO
+    # cd C:\Users\leona\Documents\GitHub\DataIntegration\python
+    # python Scoper.py "C:\Users\leona\Desktop\schemas"
+    
     directory_path = str(sys.argv[1]) #C:\Users\leona\Desktop\schemas 
-    print(len(sys.argv))
+    # print(len(sys.argv))
     # if len(sys.argv) > 1:
     #     schema_folders = str(sys.argv[2]) #"['imdb', 'sakila', 'movielens']"
     # else:
     schema_folders = None
     
-    process = ["a) SchemasToGraph", "b.1) SignatureEncoding", "b.2) LinkabilityAssessor", "c) LinkabilityCorrelator", "d) SemanticMatcher"]
+    process = ["a) SchemasToGraph", "b.1) Serialization+Embedding", "b.2) LinkabilityAssessor", "c) LinkabilityCorrelator", "d) SemanticMatcher"]
     process_line ="========================================================================================================="
 
     print(process[0] + "\n" + process_line)
@@ -460,17 +479,17 @@ if __name__ == "__main__":
     print("# Tables: "+ str(len(df_graph[df_graph.type=="table"])))
     print("# Attributes: "+ str(len(df_graph[df_graph.type=="attribute"])))
     print("Path: " + directory_path + "/schema_graph.csv")
-    print("Successfully completion." + "\n" + process_line)
+    print("Process successfully completed." + "\n" + process_line)
 
     print(process[1] + "\n" + process_line)
     # df_graph = pd.read_csv(directory_path+"/schema_graph.csv")
     df_graph['text_sequence'] = df_graph['text_sequence'].astype(str)
     df_graph['instance_sequence'] = df_graph['instance_sequence'].astype(str)
-    print("Default: Including entity serialization (e.g., " + df_graph.loc[2].text_sequence +")")
-    instance_serialization = input("Optional: Include instance serialization (e.g., " + df_graph.loc[2].instance_sequence +")? (y/n): ")
+    print("Default: Including schema_serialization (e.g., " + df_graph.loc[2].text_sequence +")")
+    instance_serialization = input("Optional: Include instance_serialization (e.g., " + df_graph.loc[2].instance_sequence +")? (y/n): ")
     instance_sequence = "instance_sequence" if instance_serialization.lower() == 'y' else None
     entities = encode_signatures_from_df(df_graph, serialization="text_sequence", instance_serialization=instance_sequence)
-    print("Successfully completion." + "\n" + process_line)
+    print("Process successfully completed." + "\n" + process_line)
 
     print(process[2] + "\n" + process_line)
     df_graph_collaborative_scoping = collaborative_scoping_track(entities, df_graph)

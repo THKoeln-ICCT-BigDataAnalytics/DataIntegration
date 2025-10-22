@@ -219,11 +219,10 @@ if __name__ == "__main__":
     
     print("b.1) SignatureEncoding" + "\n" + process_line)
     df_graph['text_sequence'] = df_graph['text_sequence'].astype(str)
-    print("Default: Including entity serialization (e.g., " + df_graph.loc[2].text_sequence +")")
-    
+    print("Default: Including schema_serialization(e.g., " + df_graph.loc[2].text_sequence +")")
     if "instance_sequence" in df_graph:
         df_graph['instance_sequence'] = df_graph['instance_sequence'].astype(str)
-        instance_serialization = input("Optional: Include instance serialization (e.g., " + df_graph.loc[2].instance_sequence +")? (y/n): ")
+        instance_serialization = input("Optional: Include instance_serialization (e.g., " + df_graph.loc[2].instance_sequence +")? (y/n): ")
         instance_sequence = "instance_sequence" if instance_serialization.lower() == 'y' else None
     else:
         instance_sequence = None
