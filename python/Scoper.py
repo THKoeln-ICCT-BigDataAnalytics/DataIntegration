@@ -41,7 +41,7 @@ def build_schema_graph(directory_path, schema_folders=None, extract_metadata=Tru
     file_encoding = 'utf8'
 
     if schema_folders is None:
-        print("Schema folders not provided, reading all folders in the directory path.")
+        print("Reading all folders in the directory path.")
         schema_folders = os.listdir(directory_path)
         print(f"Found schema folders: {schema_folders}")
     else:
@@ -460,6 +460,8 @@ if __name__ == "__main__":
     #DEMO
     # cd C:\Users\leona\Documents\GitHub\DataIntegration\python
     # python Scoper.py "C:\Users\leona\Desktop\schemas"
+    # cd C:\Users\leona\Downloads
+    # python C:\Users\leona\Downloads\Scoper.py "C:\Users\leona\Desktop\schemas"
     
     directory_path = str(sys.argv[1]) #C:\Users\leona\Desktop\schemas 
     # print(len(sys.argv))
