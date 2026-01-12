@@ -147,7 +147,10 @@ const cellStyle = {
   textAlign: "center"
 };
 
-const DatasetsPanel = () => {
+
+
+
+const DatasetsPanel = ({ vValue,  schemas, validityData, correlationData}) => {
   return (   
     <div>
         <Tabs defaultActiveKey="load_schemas" id="data_tab" className="mb-3" justify>
@@ -239,6 +242,98 @@ const DatasetsPanel = () => {
                     </p> 
                   </li>
                 </ul>
+            </Tab>
+
+            <Tab eventKey="linkability_statistics" title="Linkability Statistics">
+              <div className="container-fluid my-4"> 
+                <div className="row">
+                  {/* vValue: {vValue} */}
+                
+                  <div id="linkability_statistics_assesor" className="col-xl-8 mb-2">
+                    {validityData && validityData.length > 0 ? (
+                      <Table striped bordered hover style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "5px auto" }}>
+                        <thead>
+                          <tr>
+                            <th style={cellStyle}></th>
+                            {Object.keys(schemas).map(schema => (
+                              <th style={cellStyle} key={schema}>{schema}</th>
+                            ))}
+                            <th style={cellStyle}>∑ {validityData.filter(d => String(d.predict_linkability).toUpperCase() === "TRUE").length} / {validityData.length} 
+                               &nbsp; ({(100 - validityData.filter(d => String(d.predict_linkability).toUpperCase() === "TRUE").length / validityData.length * 100).toFixed(2)}%)
+                            </th>
+                          </tr>
+                        </thead>
+
+                        <tbody>
+                          {Object.keys(schemas).map((schema_a, i) => (
+                            <tr key={schema_a}>
+                              <td style={cellStyle}>{schema_a}</td>
+                              {Object.keys(schemas).map((schema_b) => (
+                                schema_a !== schema_b ? (
+                                  <td key={schema_b} style={cellStyle}>
+                                    {validityData.filter(d => d.schema === schema_a && d[(schema_b + "_agree")] === "1").length}
+                                    :
+                                    {validityData.filter(d => d.schema === schema_a && d[schema_b + "_agree"] === "0").length}
+                                  </td>
+                                ) : (
+                                  <td key={schema_b} style={cellStyle}>
+                                    -
+                                  </td>
+                                )
+                              ))}
+                            
+                              <td style={cellStyle}>
+                                {validityData.filter(d => d.schema === schema_a && String(d.predict_linkability).toUpperCase() === "TRUE").length} / {validityData.filter(d => d.schema === schema_a).length}
+                                &nbsp; ({(100 - validityData.filter(d => d.schema === schema_a && String(d.predict_linkability).toUpperCase() === "TRUE").length / validityData.filter(d => d.schema === schema_a).length * 100).toFixed(2)}%)
+                              </td>
+                            </tr>
+                          ))}
+                          {/* <tr>
+                            <td>∑</td>
+                            <td colSpan={Object.keys(schemas).length}></td>
+                          </tr> */}
+                        </tbody>
+                      </Table>
+                    ) : ("Upload collaborative_scoping.csv")}
+                    <center>
+                      <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "5px auto" }}>
+                        Linkable:Unlinkable and ∑ Linkable/All (Reduction in %) Ratios (LinkabilityAssessor)
+                      </p>
+                    </center>
+                  </div>
+
+                  <div id="linkability_statistics_correlator" className="col-xl-4 mb-2">
+                    
+                    {correlationData && correlationData.length > 0 ? (
+                      <Table striped bordered hover style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "5px auto" }}>
+                        {/* <thead>
+                          <tr>
+                            <th>Schema A</th>
+                            <th>Schema B</th>
+                            <th>Correlation</th>
+                          </tr>
+                        </thead> */}
+                        <tbody>
+                          {correlationData.slice().sort((a, b) => b.correlation_value - a.correlation_value).map((item, index) => (
+                            <tr key={index}>
+                              <td>{index+1}</td>
+                              <td style={cellStyle}>{item.schema_a}</td>
+                              <td style={cellStyle}>{item.schema_b}</td>
+                              <td style={{cellStyle, color: item.correlation_value > 0 ? "#28a745" : (item.correlation_value < 0 ? "#dc3545" : "inherit")}}>{item.correlation_value.toFixed(2)}</td> 
+                            </tr>
+                          ))}
+                        </tbody>
+                      </Table>
+                    ) : ("Upload correlation.csv")}
+                    <center>
+                      <p style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "5px auto" }}>
+                        Schema-Pair Ranking (LinkabilityCorrelator)
+                      </p>
+                    </center>
+                  </div>
+                </div>
+              </div>
+
             </Tab>
         </Tabs>
 

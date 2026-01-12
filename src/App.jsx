@@ -84,9 +84,14 @@ function App() {
       <div className="container-fluid my-4" style={{ minHeight: "100vh", background: "#f8f9fa" }}> 
         <div className="row">
               <div className="col-xl-7 mb-2">
-                <DatasetsPanel/>
+                <DatasetsPanel
+                  vValue={vValue}
+                  schemas={schemas}
+                  validityData={validityData.filter(d => Number(d.v) === Number(vValue))}
+                  correlationData={correlationData.filter(d => Number(d.v) === Number(vValue))} 
+                />
               </div>          
-          
+              
           {/* Second Column: import_data */}
           <div className="col-xl-5 mb-2" id="import_data">
             <div style={{

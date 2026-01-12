@@ -110,7 +110,8 @@ const Graph = ({ svgRef, data, onNodesUpdate, onNodeClick,
   // Schlüssel für beide Schemas vereinheitlichen
   const keyA = String(d.schema_a || d.source || "").toLowerCase().trim();
   const keyB = String(d.schema_b || d.target || "").toLowerCase().trim();
-
+  //d.correlation_value
+  
   // Zugehörige Schema-Nodes im Array suchen
   const nodeA = schemaNodes.find(n => normalizeSchemaName(n.data.schema) === keyA);
   const nodeB = schemaNodes.find(n => normalizeSchemaName(n.data.schema) === keyB);
