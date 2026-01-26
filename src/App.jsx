@@ -200,6 +200,7 @@ function App() {
           ⭕ Note: Shift + click on a table pulls its columns closer.
           ℹ️ <TestComponent node={selectedNode} /> 
         </p>
+        <a href="https://github.com/THKoeln-ICCT-BigDataAnalytics/DataIntegration/tree/main" target="_blank" rel="noreferrer">GitHub</a>
       </Navbar>
       
       

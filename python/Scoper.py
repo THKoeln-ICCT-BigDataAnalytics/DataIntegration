@@ -508,13 +508,26 @@ if __name__ == "__main__":
     print("Process successfully completed." + "\n" + process_line)
 
     print(process[4] + "\n" + process_line)
-    method_string = input("Specify matching method (SIM, CLUSTER, or LSH): ")
+
+    v_filter = input("Input reduced schemas at variance value (99-1) or original schemas (0)?:")
+    if int(v_filter) == 0:
+        df_graph_matching = df_graph.copy()
+    else:
+        df_graph_matching = df_graph_collaborative_scoping[(df_graph_collaborative_scoping.v == int(v_filter)) &
+                                                           (df_graph_collaborative_scoping.predict_linkability == True)].reset_index(drop=True).copy()
+    
+    method_string = input("Specify matching method (SIM, CLUSTER, or ANN): ")
+
     if method_string == "SIM":
-        df_graph_linkages = get_cartesian_linkages_similarity(df_graph, entities)
-    elif method_string in ("CLUSTER", "LSH"):
-        cardinality = input("Specify cardinality (as integer): ")
-        # tbd. extend cluster and lsh method
-        df_graph_linkages = get_cartesian_linkages_similarity(df_graph, entities)
+        df_graph_linkages = get_cartesian_linkages_similarity(df_graph_matching, entities)
+    elif method_string in ("CLUSTER"):
+        cardinality = input("Specify k-Means cardinality (as integer): ")
+        # tbd. extend with k-Means
+        df_graph_linkages = get_cartesian_linkages_similarity(df_graph_matching, entities)
+    elif method_string in ("ANN"):
+        cardinality = input("Specify top-k cardinality (as integer): ")
+        # tbd. extend ANN
+        df_graph_linkages = get_cartesian_linkages_similarity(df_graph_matching, entities)
     
     df_graph_linkages.to_csv(directory_path+"/linkages.csv", index=False)
     print("Exported file: " + directory_path+"/linkages.csv")

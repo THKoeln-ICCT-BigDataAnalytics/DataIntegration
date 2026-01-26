@@ -305,7 +305,7 @@ const DatasetsPanel = ({ vValue,  schemas, validityData, correlationData}) => {
                   <div id="linkability_statistics_correlator" className="col-xl-4 mb-2">
                     
                     {correlationData && correlationData.length > 0 ? (
-                      <Table striped bordered hover style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "5px auto" }}>
+                      <Table size="sm" striped bordered hover style={{ fontSize: "14px", color: "#555", fontFamily: "Roboto Mono, monospace", margin: "5px auto" }}>
                         {/* <thead>
                           <tr>
                             <th>Schema A</th>

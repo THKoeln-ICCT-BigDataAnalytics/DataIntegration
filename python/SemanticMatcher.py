@@ -132,29 +132,44 @@ if __name__ == "__main__":
     # process = ["a) SchemasToGraph", "b.1) SignatureEncoding", "b.2) LinkabilityAssessor", "c) LinkabilityCorrelator", "d) SemanticMatcher"]
     process_line ="============================================================================================="
 
-    print(process_line +  "\n" + "Read " + directory_path+"/schema_graph.csv")
-    df_graph = pd.read_csv(directory_path+"/schema_graph.csv")
+    print(process_line +  "\n" + "Read " + directory_path+"/collaborative_scoping.csv")
+    df_graph_collaborative_scoping = pd.read_csv(directory_path+"/collaborative_scoping.csv")
+
+    v_filter = input("Input reduced schemas at variance value (99-1) or original schemas (0)?:")
+    if int(v_filter) == 0:
+        df_graph_matching = df_graph_collaborative_scoping[(df_graph_collaborative_scoping.v == 1)].reset_index(drop=True).copy()
+    else:
+        df_graph_matching = df_graph_collaborative_scoping[(df_graph_collaborative_scoping.v == int(v_filter)) &
+                                                           (df_graph_collaborative_scoping.predict_linkability == True)].reset_index(drop=True).copy()
+    
+
     print("Schema Graph Metadata:")
-    print("# Schemas: "+ str(len(df_graph[df_graph.type=="schema"])))
-    print("# Tables: "+ str(len(df_graph[df_graph.type=="table"])))
-    print("# Attributes: "+ str(len(df_graph[df_graph.type=="attribute"])))
+    print("# Schemas: "+ str(len(df_graph_matching[df_graph_matching.type=="schema"])))
+    print("# Tables: "+ str(len(df_graph_matching[df_graph_matching.type=="table"])))
+    print("# Attributes: "+ str(len(df_graph_matching[df_graph_matching.type=="attribute"])))
     print("Read successfully completed." + "\n" + process_line)
     
     print("b.1) SignatureEncoding" + "\n" + process_line)
-    print("Default: Including schema_serialization (e.g., " + str(df_graph.loc[2].text_sequence) +")")
-    instance_serialization = input("Optional: Include instance_serialization (e.g., " + str(df_graph.loc[2].instance_sequence) +")? (y/n): ")
+    print("Default: Including schema_serialization (e.g., " + str(df_graph_matching.loc[2].text_sequence) +")")
+    instance_serialization = input("Optional: Include instance_serialization (e.g., " + str(df_graph_matching.loc[2].instance_sequence) +")? (y/n): ")
     instance_sequence = "instance_sequence" if instance_serialization.lower() == 'y' else None
-    entities = encode_signatures_from_df(df_graph, serialization="text_sequence", instance_serialization=instance_sequence)
+    entities = encode_signatures_from_df(df_graph_matching, serialization="text_sequence", instance_serialization=instance_sequence)
     print("Process successfully completed." + "\n" + process_line)
 
     print("d) SemanticMatcher" + "\n" + process_line)
-    method_string = input("Specify matching method (SIM, CLUSTER, or LSH): ")
+    
+    method_string = input("Specify matching method (SIM, CLUSTER, or ANN): ")
+
     if method_string == "SIM":
-        df_graph_linkages = get_cartesian_linkages_similarity(df_graph, entities)
-    elif method_string in ("CLUSTER", "LSH"):
-        cardinality = input("Specify cardinality (as integer): ")
-        # tbd. extend cluster and lsh method
-        df_graph_linkages = get_cartesian_linkages_similarity(df_graph, entities)
+        df_graph_linkages = get_cartesian_linkages_similarity(df_graph_matching, entities)
+    elif method_string in ("CLUSTER"):
+        cardinality = input("Specify k-Means cardinality (as integer): ")
+        # tbd. extend with k-Means
+        df_graph_linkages = get_cartesian_linkages_similarity(df_graph_matching, entities)
+    elif method_string in ("ANN"):
+        cardinality = input("Specify top-k cardinality (as integer): ")
+        # tbd. extend ANN
+        df_graph_linkages = get_cartesian_linkages_similarity(df_graph_matching, entities)
     
     df_graph_linkages.to_csv(directory_path+"/linkages.csv", index=False)
     print("Exported file: " + directory_path+"/linkages.csv")
