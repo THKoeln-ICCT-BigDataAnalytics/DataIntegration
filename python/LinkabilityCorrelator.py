@@ -15,8 +15,10 @@ import sklearn
 import sklearn.decomposition
 # c) LinkabilityCorrelator
 # d) SemanticMatcher
+import faiss
 from itertools import product
-
+from sklearn.cluster import KMeans
+from collections import defaultdict
 
 # ==============================================c) LinkabilityCorrelator====================================================
 
